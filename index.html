@@ -143,7 +143,8 @@
                     crossorigin="anonymous" 
                     poster="https://placehold.co/1200x800/1F2937/E5E7EB?text=Select+a+Model"
                     exposure="1.0"
-                    reveal="auto"> <!-- Added for smoother loading transition -->
+                    reveal="auto"
+                    environment-image="neutral"> <!-- This enables realistic lighting for the exposure control -->
                     <!-- Updated Loading Bar Slot -->
                     <div class="progress-bar" slot="progress-bar">
                         <div class="progress-track">
@@ -172,12 +173,9 @@
                     </div>
                 </div>
 
-                <!-- --- Updated Action Buttons with Share --- -->
-                <div class="mt-auto grid grid-cols-2 gap-4">
-                    <a id="model-download-link" href="#" download class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-blue-700 transition-colors duration-200">
-                        Download
-                    </a>
-                    <button id="share-btn" class="inline-block bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-gray-700 transition-colors duration-200">
+                <!-- --- Action Buttons (Download button removed) --- -->
+                <div class="mt-auto">
+                    <button id="share-btn" class="w-full bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-gray-700 transition-colors duration-200">
                         Share
                     </button>
                 </div>
@@ -239,7 +237,6 @@
             const galleryGrid = document.getElementById('gallery-grid');
             const modelTitle = document.getElementById('model-title');
             const modelDescription = document.getElementById('model-description');
-            const downloadLink = document.getElementById('model-download-link');
             const fullscreenBtn = document.getElementById('fullscreen-btn');
             const exitFullscreenBtn = document.getElementById('exit-fullscreen-btn');
             const fullscreenOverlay = document.getElementById('fullscreen-overlay');
@@ -264,7 +261,6 @@
                 mainViewer.poster = model.thumbnail;
                 modelTitle.textContent = model.title;
                 modelDescription.textContent = model.description;
-                downloadLink.href = modelUrl;
                 
                 document.querySelectorAll('.gallery-item').forEach(item => {
                     item.classList.remove('active');
@@ -362,5 +358,6 @@
 
 </body>
 </html>
+
 
 
