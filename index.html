@@ -3,23 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadspectat | 3D Model Viewer</title>
+    <title>Quadspectat.site | 3D Model Viewer</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 3D Model Viewer Component -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
     <style>
-        /* Basic CSS to make the viewer fill the entire page */
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden; /* Hide scrollbars */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark gray background */
+            color: #E5E7EB;
         }
-        iframe {
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            border-radius: 16px;
+            border: 1px solid #374151;
+            background-color: #1F2937;
+        }
+        .gallery-item {
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #1F2937;
+        }
+        .gallery-item:hover {
+            border-color: #3B82F6; /* Blue border on hover */
+            transform: scale(1.05);
+        }
+        .gallery-item.active {
+            border-color: #60A5FA; /* Lighter blue for active item */
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+        }
+        /* Custom progress bar for model loading */
+        .progress-bar {
+            display: block;
             width: 100%;
             height: 100%;
-            border: none; /* Remove the ugly default border */
+            border-radius: 16px;
+            background-color: #374151;
+        }
+        .progress-bar.hide {
+            display: none;
+        }
+        .update-progress {
+            margin-top: -30px;
+            text-align: center;
+            pointer-events: none;
+            color: white;
+            font-size: 24px;
         }
     </style>
 </head>
-<body>
-    <iframe src="https://quadspectat-models.fra1.cdn.digitaloceanspaces.com/Productions/%D7%90%D7%90%20%D7%9E%D7%A2%D7%A8%D7%9B%D7%95%D7%AA%20%D7%9E%D7%99%D7%93%D7%A2%20%D7%95%D7%A0%D7%99%D7%94%D7%95%D7%9C%20%D7%9E%D7%A9%D7%90%D7%91%D7%99%D7%9D%20%D7%91%D7%A2%D7%9E%20-%200528376768/App/index.html"></iframe>
+<body class="antialiased">
+
+    <!-- Header Section -->
+    <header class="text-center py-8 border-b border-gray-700">
+        <h1 class="text-4xl font-bold text-white">Quadspectat.site</h1>
+        <p class="text-lg text-gray-400 mt-2">Your Online 3D Model Gallery</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-10">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- The 3D model viewer will be here -->
+            <div class="lg-col-span-2">
+                <model-viewer id="main-viewer"
+                    src="" <!-- The model URL will be set by JavaScript -->
+                    alt="3D Model"
+                    ar
+                    shadow-intensity="1"
+                    camera-controls
+                    touch-action="pan-y"
+                    auto-rotate
+                    crossorigin="anonymous" <!-- Added for better cross-origin loading -->
+                    poster="https://placehold.co/1200x800/1F2937/E5E7EB?text=Select+a+Model">
+                    <!-- Added a progress bar for better loading feedback -->
+                    <div class="progress-bar hide" slot="progress-bar">
+                        <div class="update-progress"></div>
+                    </div>
+                </model-viewer>
+            </div>
+            
+            <!-- Model Information -->
+            <div class="flex flex-col justify-center bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h2 id="model-title" class="text-3xl font-bold text-white mb-3">Select a Model</h2>
+                <p id="model-description" class="text-gray-300">Choose a model from the gallery below to view it here. Use your mouse or finger to rotate, pan, and zoom.</p>
+                <a id="model-download-link" href="#" download class="mt-auto inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-blue-700 transition-colors duration-200">
+                    Download Model
+                </a>
+            </div>
+        </div>
+        
+        <!-- Gallery Section -->
+        <div>
+            <h3 class="text-2xl font-semibold mb-6 text-center border-t border-gray-700 pt-8">Model Library</h3>
+            <div id="gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- Gallery items will be dynamically inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="text-center py-6 mt-12 border-t border-gray-700">
+        <p class="text-gray-500">&copy; 2025 Quadspectat.site. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // ===================================================================================
+            // === THIS IS THE ONLY PART YOU NEED TO EDIT                                      ===
+            // ===================================================================================
+            const models = [
+                {
+                    title: "Building Scan",
+                    // TODO: Replace with the actual filename of your model on DigitalOcean Spaces
+                    filename: "building_scan_01.glb", 
+                    thumbnail: "https://placehold.co/300x300/3B82F6/FFFFFF?text=Building",
+                    description: "Photogrammetry scan of a historic building."
+                },
+                {
+                    title: "Drone Survey",
+                    filename: "terrain_survey.glb",
+                    thumbnail: "https://placehold.co/300x300/3B82F6/FFFFFF?text=Terrain",
+                    description: "A 3D model generated from a drone survey of a construction site."
+                },
+                {
+                    title: "Mechanical Part",
+                    filename: "gear_assembly.glb",
+                    thumbnail: "https://placehold.co/300x300/3B82F6/FFFFFF?text=Part",
+                    description: "A detailed mechanical part for inspection."
+                },
+                {
+                    title: "Sample Astronaut",
+                    // This is a special case using a full URL for the sample
+                    filename: "https://modelviewer.dev/shared-assets/models/Astronaut.glb", 
+                    thumbnail: "https://placehold.co/300x300/1F2937/E5E7EB?text=Astronaut",
+                    description: "A sample astronaut model to demonstrate functionality."
+                }
+            ];
+            // ===================================================================================
+
+            const mainViewer = document.getElementById('main-viewer');
+            const galleryGrid = document.getElementById('gallery-grid');
+            const modelTitle = document.getElementById('model-title');
+            const modelDescription = document.getElementById('model-description');
+            const downloadLink = document.getElementById('model-download-link');
+            const doSpacesBaseUrl = "https://quadspectat-models.fra1.digitaloceanspaces.com/";
+
+            function getFullUrl(filename) {
+                if (filename.startsWith('http')) {
+                    return filename;
+                }
+                return doSpacesBaseUrl + filename;
+            }
+
+            function loadModel(model) {
+                const modelUrl = getFullUrl(model.filename);
+                mainViewer.src = modelUrl;
+                mainViewer.poster = model.thumbnail;
+                modelTitle.textContent = model.title;
+                modelDescription.textContent = model.description;
+                downloadLink.href = modelUrl;
+                
+                document.querySelectorAll('.gallery-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.filename === model.filename) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+
+            models.forEach(model => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.dataset.filename = model.filename;
+
+                const img = document.createElement('img');
+                img.src = model.thumbnail;
+                img.alt = model.title;
+                img.className = 'w-full h-auto object-cover';
+
+                const title = document.createElement('p');
+                title.textContent = model.title;
+                title.className = 'text-center font-semibold p-3 text-white';
+
+                item.appendChild(img);
+                item.appendChild(title);
+                
+                item.addEventListener('click', () => loadModel(model));
+                galleryGrid.appendChild(item);
+            });
+            
+            // --- Event Listeners for better UX and Debugging ---
+
+            // Progress bar listener
+            mainViewer.addEventListener('progress', (event) => {
+                const progressBar = event.target.querySelector('.progress-bar');
+                const updating = event.target.querySelector('.update-progress');
+                const progress = event.detail.totalProgress * 100;
+                updating.textContent = `${Math.round(progress)}%`;
+              
+                if (progress === 100) {
+                    progressBar.classList.add('hide');
+                } else {
+                    progressBar.classList.remove('hide');
+                }
+            });
+
+            // Error listener
+            mainViewer.addEventListener('error', (event) => {
+                console.error('Model Viewer Error:', event.detail);
+                modelTitle.textContent = "Error Loading Model";
+                modelDescription.innerHTML = `
+                    <p class="text-red-400 font-semibold">Could not load the 3D model.</p>
+                    <p class="mt-2 text-sm">Please check the following:</p>
+                    <ul class="list-disc list-inside mt-2 text-sm space-y-1">
+                        <li><b>File Not Found:</b> Is the filename in the script correct and does the file exist in your DigitalOcean Space?</li>
+                        <li><b>CORS Error:</b> Have you configured CORS in your Space settings to allow requests from this website's domain?</li>
+                    </ul>
+                `;
+                mainViewer.poster = "https://placehold.co/1200x800/7f1d1d/ffffff?text=Load+Failed";
+            });
+            
+            // Load the first model by default
+            if (models.length > 0) {
+                loadModel(models[0]);
+            }
+        });
+    </script>
+
 </body>
 </html>
+
