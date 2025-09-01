@@ -45,28 +45,77 @@
             border-color: #60A5FA; /* Lighter blue for active item */
             box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
         }
-        /* Custom progress bar for model loading */
+        /* --- New styles for Loading Bar --- */
         .progress-bar {
-            display: block;
+            position: absolute;
             width: 100%;
             height: 100%;
+            background-color: #1f2937;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             border-radius: 16px;
-            background-color: #374151;
+            transition: opacity 0.3s ease;
         }
         .progress-bar.hide {
-            display: none;
-        }
-        .update-progress {
-            margin-top: -30px;
-            text-align: center;
+            opacity: 0;
             pointer-events: none;
+        }
+        .progress-track {
+            width: 80%;
+            max-width: 300px;
+            height: 8px;
+            background-color: #374151;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #3B82F6;
+            transition: width 0.2s linear;
+        }
+        .progress-text {
             color: white;
-            font-size: 24px;
+            margin-top: 12px;
+            font-size: 16px;
         }
         /* Style for the model viewer when in fullscreen mode */
         #fullscreen-overlay model-viewer {
             height: 100%;
             border: none;
+        }
+        /* --- New styles for Lighting Controls --- */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #60A5FA;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #60A5FA;
+            border-radius: 50%;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -84,7 +133,6 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             <!-- The 3D model viewer will be here -->
             <div id="viewer-container" class="lg:col-span-2 relative">
-                <!-- The invalid HTML comment inside the tag below has been removed to fix the viewer -->
                 <model-viewer id="main-viewer"
                     src="" 
                     alt="3D Model"
@@ -93,9 +141,14 @@
                     camera-controls
                     interaction-prompt="auto"
                     crossorigin="anonymous" 
-                    poster="https://placehold.co/1200x800/1F2937/E5E7EB?text=Select+a+Model">
-                    <div class="progress-bar hide" slot="progress-bar">
-                        <div class="update-progress"></div>
+                    poster="https://placehold.co/1200x800/1F2937/E5E7EB?text=Select+a+Model"
+                    exposure="1.0"> <!-- Default exposure set -->
+                    <!-- Updated Loading Bar Slot -->
+                    <div class="progress-bar" slot="progress-bar">
+                        <div class="progress-track">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-text">Loading...</div>
                     </div>
                 </model-viewer>
                 <!-- Fullscreen Button -->
@@ -105,12 +158,28 @@
             </div>
             
             <!-- Model Information -->
-            <div class="flex flex-col justify-center bg-gray-800 p-6 rounded-2xl border border-gray-700">
+            <div class="flex flex-col bg-gray-800 p-6 rounded-2xl border border-gray-700">
                 <h2 id="model-title" class="text-3xl font-bold text-white mb-3">Select a Model</h2>
-                <p id="model-description" class="text-gray-300">Choose a model from the gallery below to view it here. Use your mouse or finger to rotate, pan, and zoom.</p>
-                <a id="model-download-link" href="#" download class="mt-auto inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-blue-700 transition-colors duration-200">
-                    Download Model
-                </a>
+                <p id="model-description" class="text-gray-300">Choose a model from the gallery below to view it here.</p>
+                
+                <!-- --- New Lighting Controls --- -->
+                <div id="lighting-controls" class="my-6 space-y-4">
+                    <h3 class="text-lg font-semibold text-white">Lighting Controls</h3>
+                    <div>
+                        <label for="exposure" class="block text-sm font-medium text-gray-300 mb-2">Brightness (Exposure)</label>
+                        <input type="range" id="exposure" min="0" max="2" step="0.1" value="1.0">
+                    </div>
+                </div>
+
+                <!-- --- Updated Action Buttons with Share --- -->
+                <div class="mt-auto grid grid-cols-2 gap-4">
+                    <a id="model-download-link" href="#" download class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-blue-700 transition-colors duration-200">
+                        Download
+                    </a>
+                    <button id="share-btn" class="inline-block bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-gray-700 transition-colors duration-200">
+                        Share
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -155,7 +224,6 @@
                     description: "A description of my first uploaded model." // 4. Change the description
                 },
                 // ===================================================================================
-                // You can add more models by copying the block above and pasting it here.
                 
                 {
                     title: "Sample Astronaut",
@@ -165,19 +233,21 @@
                 }
             ];
             
-
+            // Get all DOM elements
             const mainViewer = document.getElementById('main-viewer');
             const galleryGrid = document.getElementById('gallery-grid');
             const modelTitle = document.getElementById('model-title');
             const modelDescription = document.getElementById('model-description');
             const downloadLink = document.getElementById('model-download-link');
-            
-            // Fullscreen elements
             const fullscreenBtn = document.getElementById('fullscreen-btn');
             const exitFullscreenBtn = document.getElementById('exit-fullscreen-btn');
             const fullscreenOverlay = document.getElementById('fullscreen-overlay');
             const fullscreenContainer = document.getElementById('fullscreen-container');
             const originalViewerContainer = document.getElementById('viewer-container');
+            
+            // New elements for added features
+            const shareBtn = document.getElementById('share-btn');
+            const exposureSlider = document.getElementById('exposure');
             
             function getFullUrl(filename) {
                 if (filename.startsWith('http')) {
@@ -207,49 +277,74 @@
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
                 item.dataset.filename = model.filename;
-
                 const img = document.createElement('img');
                 img.src = model.thumbnail;
                 img.alt = model.title;
                 img.className = 'w-full h-auto object-cover';
-
                 const title = document.createElement('p');
                 title.textContent = model.title;
                 title.className = 'text-center font-semibold p-3 text-white';
-
                 item.appendChild(img);
                 item.appendChild(title);
-                
                 item.addEventListener('click', () => loadModel(model));
                 galleryGrid.appendChild(item);
             });
             
+            // --- Event Listeners ---
+            
             mainViewer.addEventListener('error', (event) => {
                 console.error('Model Viewer Error:', event.detail);
                 modelTitle.textContent = "Error Loading Model";
-                modelDescription.innerHTML = `
-                    <p class="text-red-400 font-semibold">Could not load the 3D model.</p>
-                    <p class="mt-2 text-sm">Please check the following:</p>
-                    <ul class="list-disc list-inside mt-2 text-sm space-y-1">
-                        <li><b>Incorrect URL:</b> Is the link pasted in the script correct and does it point directly to a .glb file?</li>
-                        <li><b>CORS Error:</b> Have you configured CORS in your Space settings to allow requests from this website's domain?</li>
-                    </ul>
-                `;
+                modelDescription.innerHTML = `<p class="text-red-400 font-semibold">Could not load the 3D model.</p>`;
                 mainViewer.poster = "https://placehold.co/1200x800/7f1d1d/ffffff?text=Load+Failed";
             });
 
-            // --- Fullscreen Logic ---
+            // --- Updated Loading Bar Logic ---
+            mainViewer.addEventListener('progress', (event) => {
+                const progressBar = mainViewer.querySelector('.progress-bar');
+                const progressFill = progressBar.querySelector('.progress-fill');
+                const progressText = progressBar.querySelector('.progress-text');
+                const progress = event.detail.totalProgress * 100;
+
+                progressFill.style.width = `${progress}%`;
+                progressText.textContent = `Loading... ${Math.round(progress)}%`;
+
+                if (progress === 1) { // model-viewer progress is 1 when done
+                    progressBar.classList.add('hide');
+                } else {
+                    progressBar.classList.remove('hide');
+                }
+            });
+
+            // --- New Share Button Logic ---
+            shareBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    const originalText = shareBtn.textContent;
+                    shareBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        shareBtn.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy link: ', err);
+                });
+            });
+
+            // --- New Lighting Control Logic ---
+            exposureSlider.addEventListener('input', () => {
+                mainViewer.exposure = exposureSlider.value;
+            });
+
+            // Fullscreen Logic
             fullscreenBtn.addEventListener('click', () => {
                 fullscreenOverlay.classList.remove('hidden');
-                fullscreenContainer.appendChild(mainViewer); // Move viewer to overlay
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                fullscreenContainer.appendChild(mainViewer);
+                document.body.style.overflow = 'hidden';
             });
 
             exitFullscreenBtn.addEventListener('click', () => {
                 fullscreenOverlay.classList.add('hidden');
-                // Move viewer back to its original container, right before the fullscreen button
                 originalViewerContainer.insertBefore(mainViewer, fullscreenBtn); 
-                document.body.style.overflow = ''; // Restore scrolling
+                document.body.style.overflow = '';
             });
             
             if (models.length > 0) {
@@ -260,7 +355,4 @@
 
 </body>
 </html>
-
-
-
 
