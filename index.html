@@ -28,9 +28,6 @@
             border-radius: 16px;
             border: 1px solid #374151;
             background-color: #1F2937;
-            /* -- New lines to fix interaction -- */
-            position: relative; /* Establishes a stacking context */
-            z-index: 1;         /* Ensures it's above its container's base layer */
         }
         .gallery-item {
             cursor: pointer;
@@ -87,8 +84,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             <!-- The 3D model viewer will be here -->
             <div id="viewer-container" class="lg:col-span-2 relative">
+                <!-- The invalid HTML comment inside the tag below has been removed to fix the viewer -->
                 <model-viewer id="main-viewer"
-                    src="" <!-- The model URL will be set by JavaScript -->
+                    src="" 
                     alt="3D Model"
                     ar
                     shadow-intensity="1"
@@ -262,6 +260,7 @@
 
 </body>
 </html>
+
 
 
 
