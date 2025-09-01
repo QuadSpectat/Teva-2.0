@@ -142,7 +142,8 @@
                     interaction-prompt="auto"
                     crossorigin="anonymous" 
                     poster="https://placehold.co/1200x800/1F2937/E5E7EB?text=Select+a+Model"
-                    exposure="1.0"> <!-- Default exposure set -->
+                    exposure="1.0"
+                    reveal="auto"> <!-- Added for smoother loading transition -->
                     <!-- Updated Loading Bar Slot -->
                     <div class="progress-bar" slot="progress-bar">
                         <div class="progress-track">
@@ -299,22 +300,28 @@
                 mainViewer.poster = "https://placehold.co/1200x800/7f1d1d/ffffff?text=Load+Failed";
             });
 
-            // --- Updated Loading Bar Logic ---
+            // --- Corrected Loading Bar Logic ---
+            const progressBar = mainViewer.querySelector('.progress-bar');
+            
             mainViewer.addEventListener('progress', (event) => {
-                const progressBar = mainViewer.querySelector('.progress-bar');
                 const progressFill = progressBar.querySelector('.progress-fill');
                 const progressText = progressBar.querySelector('.progress-text');
                 const progress = event.detail.totalProgress * 100;
 
                 progressFill.style.width = `${progress}%`;
                 progressText.textContent = `Loading... ${Math.round(progress)}%`;
-
-                if (progress === 1) { // model-viewer progress is 1 when done
-                    progressBar.classList.add('hide');
-                } else {
+                
+                // Ensure progress bar is visible during loading
+                if (event.detail.totalProgress < 1) {
                     progressBar.classList.remove('hide');
                 }
             });
+
+            // Use the 'load' event to guarantee the model is ready before hiding the bar
+            mainViewer.addEventListener('load', () => {
+                progressBar.classList.add('hide');
+            });
+
 
             // --- New Share Button Logic ---
             shareBtn.addEventListener('click', () => {
@@ -355,4 +362,5 @@
 
 </body>
 </html>
+
 
