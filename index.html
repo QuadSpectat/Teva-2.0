@@ -156,7 +156,7 @@
                 </model-viewer>
                 <!-- Fullscreen Button -->
                 <button id="fullscreen-btn" class="absolute top-4 right-4 bg-gray-800 bg-opacity-75 text-white p-2 rounded-full hover:bg-opacity-100 transition z-10" aria-label="Enter Fullscreen">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 B24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
                 </button>
             </div>
             
@@ -215,7 +215,7 @@
                 // === EDIT THIS SECTION TO ADD YOUR MODEL                                         ===
                 // ===================================================================================
                 {
-                    title: "Givat Haviva 2025", // 1. Change the title for your model
+                    title: "My First Model", // 1. Change the title for your model
                     
                     // 2. PASTE THE FULL LINK to your .glb file here, replacing the placeholder
                     filename: "https://quadspectat-models.fra1.cdn.digitaloceanspaces.com/Givat%20Haviva%20for%20web.glb", 
@@ -290,10 +290,19 @@
             
             // --- Event Listeners ---
             
+            // --- Updated Error Listener with Clearer Instructions ---
             mainViewer.addEventListener('error', (event) => {
                 console.error('Model Viewer Error:', event.detail);
                 modelTitle.textContent = "Error Loading Model";
-                modelDescription.innerHTML = `<p class="text-red-400 font-semibold">Could not load the 3D model.</p>`;
+                modelDescription.innerHTML = `
+                    <p class="text-red-400 font-semibold">Could not load the 3D model.</p>
+                    <p class="mt-2 text-sm"><b>Most Common Cause:</b> The placeholder link in the HTML file has not been replaced with your model's actual URL.</p>
+                    <ul class="list-disc list-inside mt-2 text-sm space-y-1">
+                        <li><b>Is the link correct?</b> Make sure you have pasted the full, correct public URL to your <code>.glb</code> file.</li>
+                        <li><b>Is the file public?</b> Check the file's permissions in your DigitalOcean Space.</li>
+                        <li><b>Is CORS configured?</b> Ensure your Space's CORS settings allow your website's domain.</li>
+                    </ul>
+                `;
                 mainViewer.poster = "https://placehold.co/1200x800/7f1d1d/ffffff?text=Load+Failed";
             });
 
@@ -308,13 +317,11 @@
                 progressFill.style.width = `${progress}%`;
                 progressText.textContent = `Loading... ${Math.round(progress)}%`;
                 
-                // Ensure progress bar is visible during loading
                 if (event.detail.totalProgress < 1) {
                     progressBar.classList.remove('hide');
                 }
             });
 
-            // Use the 'load' event to guarantee the model is ready before hiding the bar
             mainViewer.addEventListener('load', () => {
                 progressBar.classList.add('hide');
             });
@@ -359,7 +366,4 @@
 
 </body>
 </html>
-
-
-
 
