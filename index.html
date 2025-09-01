@@ -28,6 +28,9 @@
             border-radius: 16px;
             border: 1px solid #374151;
             background-color: #1F2937;
+            /* -- New lines to fix interaction -- */
+            position: relative; /* Establishes a stacking context */
+            z-index: 1;         /* Ensures it's above its container's base layer */
         }
         .gallery-item {
             cursor: pointer;
@@ -259,5 +262,6 @@
 
 </body>
 </html>
+
 
 
