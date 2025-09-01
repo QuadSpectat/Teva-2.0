@@ -114,15 +114,6 @@
             border-radius: 50%;
             cursor: pointer;
         }
-        /* Style for the new dropdown */
-        select {
-            background-color: #374151;
-            color: white;
-            border: 1px solid #4B5563;
-            border-radius: 8px;
-            padding: 8px 12px;
-            width: 100%;
-        }
     </style>
 </head>
 <body class="antialiased">
@@ -151,7 +142,7 @@
                     reveal="auto"
                     environment-image="neutral"
                     skybox-image="neutral"
-                    tone-mapping="neutral"> <!-- Default tone mapping -->
+                    exposure="1.0">
                     <div class="progress-bar" slot="progress-bar">
                         <div class="progress-track">
                             <div class="progress-fill"></div>
@@ -170,20 +161,12 @@
                 <h2 id="model-title" class="text-3xl font-bold text-white mb-3">Select a Model</h2>
                 <p id="model-description" class="text-gray-300">Choose a model from the gallery below to view it here.</p>
                 
-                <!-- --- Updated Controls with Tone Mapping --- -->
+                <!-- --- Reverted Controls --- -->
                 <div id="lighting-controls" class="my-6 space-y-4">
-                    <h3 class="text-lg font-semibold text-white">Scene Controls</h3>
+                    <h3 class="text-lg font-semibold text-white">Lighting Controls</h3>
                     <div>
-                        <label for="tone-mapping" class="block text-sm font-medium text-gray-300 mb-2">Tone Mapping</label>
-                        <select id="tone-mapping">
-                            <option value="neutral">Neutral</option>
-                            <option value="agx">AGX</option>
-                            <option value="aces">ACES (Cinematic)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="shadow-intensity" class="block text-sm font-medium text-gray-300 mb-2">Shadow Intensity</label>
-                        <input type="range" id="shadow-intensity" min="0" max="2" step="0.1" value="1.0">
+                        <label for="exposure" class="block text-sm font-medium text-gray-300 mb-2">Brightness (Exposure)</label>
+                        <input type="range" id="exposure" min="0" max="2" step="0.1" value="1.0">
                     </div>
                 </div>
 
@@ -258,8 +241,7 @@
             const originalViewerContainer = document.getElementById('viewer-container');
             
             const shareBtn = document.getElementById('share-btn');
-            const shadowSlider = document.getElementById('shadow-intensity');
-            const toneMappingSelect = document.getElementById('tone-mapping'); // New dropdown element
+            const exposureSlider = document.getElementById('exposure');
             
             function getFullUrl(filename) {
                 if (filename.startsWith('http')) {
@@ -343,13 +325,8 @@
                 });
             });
             
-            // --- Updated Control Listeners ---
-            shadowSlider.addEventListener('input', () => {
-                mainViewer.shadowIntensity = shadowSlider.value;
-            });
-
-            toneMappingSelect.addEventListener('change', () => {
-                mainViewer.toneMapping = toneMappingSelect.value;
+            exposureSlider.addEventListener('input', () => {
+                mainViewer.exposure = exposureSlider.value;
             });
 
             // Fullscreen Logic
