@@ -45,7 +45,6 @@
             border-color: #60A5FA; /* Lighter blue for active item */
             box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
         }
-        /* --- New styles for Loading Bar --- */
         .progress-bar {
             position: absolute;
             width: 100%;
@@ -81,12 +80,10 @@
             margin-top: 12px;
             font-size: 16px;
         }
-        /* Style for the model viewer when in fullscreen mode */
         #fullscreen-overlay model-viewer {
             height: 100%;
             border: none;
         }
-        /* --- New styles for Lighting Controls --- */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -117,6 +114,15 @@
             border-radius: 50%;
             cursor: pointer;
         }
+        /* Style for the new dropdown */
+        select {
+            background-color: #374151;
+            color: white;
+            border: 1px solid #4B5563;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -142,11 +148,10 @@
                     interaction-prompt="auto"
                     crossorigin="anonymous" 
                     poster="https://placehold.co/1200x800/1F2937/E5E7EB?text=Select+a+Model"
-                    exposure="1.0"
                     reveal="auto"
                     environment-image="neutral"
-                    skybox-image="neutral"> <!-- This makes the environment visible and enables exposure -->
-                    <!-- Updated Loading Bar Slot -->
+                    skybox-image="neutral"
+                    tone-mapping="neutral"> <!-- Default tone mapping -->
                     <div class="progress-bar" slot="progress-bar">
                         <div class="progress-track">
                             <div class="progress-fill"></div>
@@ -165,12 +170,16 @@
                 <h2 id="model-title" class="text-3xl font-bold text-white mb-3">Select a Model</h2>
                 <p id="model-description" class="text-gray-300">Choose a model from the gallery below to view it here.</p>
                 
-                <!-- --- Updated Lighting Controls with Shadow Intensity for debugging --- -->
+                <!-- --- Updated Controls with Tone Mapping --- -->
                 <div id="lighting-controls" class="my-6 space-y-4">
-                    <h3 class="text-lg font-semibold text-white">Lighting Controls</h3>
+                    <h3 class="text-lg font-semibold text-white">Scene Controls</h3>
                     <div>
-                        <label for="exposure" class="block text-sm font-medium text-gray-300 mb-2">Brightness (Exposure)</label>
-                        <input type="range" id="exposure" min="0" max="2" step="0.1" value="1.0">
+                        <label for="tone-mapping" class="block text-sm font-medium text-gray-300 mb-2">Tone Mapping</label>
+                        <select id="tone-mapping">
+                            <option value="neutral">Neutral</option>
+                            <option value="agx">AGX</option>
+                            <option value="aces">ACES (Cinematic)</option>
+                        </select>
                     </div>
                     <div>
                         <label for="shadow-intensity" class="block text-sm font-medium text-gray-300 mb-2">Shadow Intensity</label>
@@ -178,7 +187,7 @@
                     </div>
                 </div>
 
-                <!-- --- Action Buttons (Download button removed) --- -->
+                <!-- --- Action Buttons --- -->
                 <div class="mt-auto">
                     <button id="share-btn" class="w-full bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg text-center hover:bg-gray-700 transition-colors duration-200">
                         Share
@@ -248,10 +257,9 @@
             const fullscreenContainer = document.getElementById('fullscreen-container');
             const originalViewerContainer = document.getElementById('viewer-container');
             
-            // New elements for added features
             const shareBtn = document.getElementById('share-btn');
-            const exposureSlider = document.getElementById('exposure');
-            const shadowSlider = document.getElementById('shadow-intensity'); // New slider element
+            const shadowSlider = document.getElementById('shadow-intensity');
+            const toneMappingSelect = document.getElementById('tone-mapping'); // New dropdown element
             
             function getFullUrl(filename) {
                 if (filename.startsWith('http')) {
@@ -293,8 +301,6 @@
                 galleryGrid.appendChild(item);
             });
             
-            // --- Event Listeners ---
-            
             mainViewer.addEventListener('error', (event) => {
                 console.error('Model Viewer Error:', event.detail);
                 modelTitle.textContent = "Error Loading Model";
@@ -310,26 +316,20 @@
                 mainViewer.poster = "https://placehold.co/1200x800/7f1d1d/ffffff?text=Load+Failed";
             });
 
-            // --- Corrected Loading Bar Logic ---
             const progressBar = mainViewer.querySelector('.progress-bar');
-            
             mainViewer.addEventListener('progress', (event) => {
                 const progressFill = progressBar.querySelector('.progress-fill');
                 const progressText = progressBar.querySelector('.progress-text');
                 const progress = event.detail.totalProgress * 100;
-
                 progressFill.style.width = `${progress}%`;
                 progressText.textContent = `Loading... ${Math.round(progress)}%`;
-                
                 if (event.detail.totalProgress < 1) {
                     progressBar.classList.remove('hide');
                 }
             });
-
             mainViewer.addEventListener('load', () => {
                 progressBar.classList.add('hide');
             });
-
 
             shareBtn.addEventListener('click', () => {
                 navigator.clipboard.writeText(window.location.href).then(() => {
@@ -342,17 +342,15 @@
                     console.error('Failed to copy link: ', err);
                 });
             });
-
-            // --- Updated Lighting Control Logic ---
-            exposureSlider.addEventListener('input', () => {
-                mainViewer.exposure = exposureSlider.value;
-            });
-
-            // New listener for the shadow slider
+            
+            // --- Updated Control Listeners ---
             shadowSlider.addEventListener('input', () => {
                 mainViewer.shadowIntensity = shadowSlider.value;
             });
 
+            toneMappingSelect.addEventListener('change', () => {
+                mainViewer.toneMapping = toneMappingSelect.value;
+            });
 
             // Fullscreen Logic
             fullscreenBtn.addEventListener('click', () => {
