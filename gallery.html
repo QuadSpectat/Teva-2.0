@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quadspectat - 3D Model Gallery</title>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .panel { position: absolute; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(5px); color: white; padding: 15px; box-sizing: border-box; }
+    #gallery { top: 0; left: 0; width: 250px; height: 100%; overflow-y: auto; }
+    #gallery h2 { margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 10px; }
+    #gallery ul { list-style: none; padding: 0; }
+    #gallery li { padding: 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+    #gallery li:hover, #gallery li.active { background-color: #007bff; }
+    #toolbar { top: 15px; left: 280px; padding: 8px; border-radius: 8px; display: flex; gap: 10px; }
+    #toolbar button { background-color: #444; color: white; border: 1px solid #666; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+    #toolbar button.active { background-color: #007bff; border-color: #007bff; }
+    #lighting-controls { top: 75px; left: 265px; width: 220px; border-radius: 8px; padding: 10px 15px; }
+    #lighting-controls label { display: block; margin-bottom: 5px; font-size: 14px; }
+    #lighting-controls input { width: 100%; }
+    #measurement-display { top: 15px; right: 15px; border-radius: 8px; font-size: 16px; text-align: right; line-height: 1.5; white-space: pre; }
+    #controlsHelp { bottom: 15px; right: 15px; padding: 10px 15px; border-radius: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  
+  <div id="cesiumContainer"></div>
+
+  <div id="gallery" class="panel">
+    <h2>Model Gallery</h2>
+    <ul id="modelList"></ul>
+  </div>
+
+  <div id="toolbar" class="panel">
+    <button id="recenterBtn">Recenter</button>
+    <button id="distanceBtn">Measure Distance</button>
+    <button id="areaBtn">Measure Area</button>
+    <button id="clearBtn">Clear</button>
+  </div>
+  
+  <div id="lighting-controls" class="panel">
+    <label for="brightness">Brightness</label>
+    <input type="range" id="brightness" min="0" max="3" value="1" step="0.1">
+    <label for="contrast">Contrast</label>
+    <input type="range" id="contrast" min="0" max="3" value="1" step="0.1">
+    <label for="gamma">Gamma</label>
+    <input type="range" id="gamma" min="0.1" max="4" value="2.2" step="0.1">
+  </div>
+
+  <div id="measurement-display" class="panel">Select a tool to begin measuring.</div>
+  <div id="controlsHelp" class="panel">
+      <b>Controls:</b> W, S, A, D, Q, E | Arrows (Look) | Left-Click (Measure)
+  </div>
+
+  <script>
+    // ===============================================
+    // PART 1: YOUR CUSTOM CONFIGURATION
+    // ===============================================
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmYTNlODhkNC0zOTNlLTRkMmEtODU2MS04ZGQ3NDFkNGU4NmQiLCJpZCI6MTE5NjI3LCJpYXQiOjE2NzIxNjg2MjN9.iQ-WY4qZZoK8NCgheHh1m0gM4GBWsaMl7UTMcufyl7Q';
+
+    const models = [
+      { 
+        name: "Production 3", 
+        url: "https://quadspectat-models.fra1.cdn.digitaloceanspaces.com/Production_3/Scene/Production_3.json" 
+      }
+    ];
+
+    // ===============================================
+    // PART 2: SETUP THE VIEWER & UI
+    // ===============================================
+    let currentTileset = null;
+    const modelListElement = document.getElementById('modelList');
+
+    async function main() {
+      try {
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+          terrainProvider: await Cesium.Terrain.fromWorldTerrain(),
+          infoBox: false, selectionIndicator: false
+        });
+        viewer.scene.globe.enableLighting = true;
+
+        models.forEach((model) => {
+          const listItem = document.createElement('li');
+          listItem.textContent = model.name;
+          listItem.onclick = () => {
+            loadModel(viewer, model.url);
+            document.querySelectorAll('#modelList li').forEach(el => el.classList.remove('active'));
+            listItem.classList.add('active');
+          };
+          modelListElement.appendChild(listItem);
+        });
+
+        document.getElementById('recenterBtn').onclick = () => { if (currentTileset) viewer.zoomTo(currentTileset); };
+        
+        setupMovementControls(viewer);
+        setupLightingControls(viewer);
+        setupMeasurementTools(viewer);
+
+        if (models.length > 0) modelListElement.querySelector('li').click();
+        
+      } catch (error) { console.error(`An error occurred: ${error}`); }
+    }
+
+    async function loadModel(viewer, url) {
+        if (currentTileset) {
+            viewer.scene.primitives.remove(currentTileset);
+            currentTileset = null;
+        }
+        try {
+            const tileset = await Cesium.Cesium3DTileset.fromUrl(url);
+            viewer.scene.primitives.add(tileset);
+            await viewer.zoomTo(tileset);
+            currentTileset = tileset;
+        } catch (error) {
+            console.error(`Failed to load model from ${url}. Full error:`, error);
+            // Provide a more helpful alert to the user.
+            alert(
+                `MODEL FAILED TO LOAD.\n\n` +
+                `This is usually due to one of two reasons:\n\n` +
+                `1. 404 Not Found: The URL is incorrect. Double-check the link in your 'models' list.\n` +
+                `URL: ${url}\n\n` +
+                `2. CORS Error: Your server is blocking the request. Go to your DigitalOcean Space settings and ensure CORS is enabled for your domain (or '*' for testing).\n\n` +
+                `Check the developer console (F12) for more details.`
+            );
+        }
+    }
+
+    function setupMovementControls(viewer) {
+        const flags = {
+            moveForward: false, moveBackward: false, moveUp: false, moveDown: false,
+            moveLeft: false, moveRight: false, lookLeft: false, lookRight: false,
+            lookUp: false, lookDown: false
+        };
+
+        const keyMap = {
+            'w': 'moveForward', 's': 'moveBackward', 'q': 'moveUp', 'e': 'moveDown',
+            'a': 'moveLeft', 'd': 'moveRight', 'ArrowLeft': 'lookLeft', 'ArrowRight': 'lookRight',
+            'ArrowUp': 'lookUp', 'ArrowDown': 'lookDown'
+        };
+
+        document.addEventListener('keydown', (e) => {
+            const flag = keyMap[e.key];
+            if (flag) flags[flag] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const flag = keyMap[e.key];
+            if (flag) flags[flag] = false;
+        });
+
+        viewer.clock.onTick.addEventListener(() => {
+            const camera = viewer.camera;
+            const moveRate = camera.positionCartographic.height / 100.0;
+            const lookRate = 0.01;
+
+            if (flags.moveForward) camera.moveForward(moveRate);
+            if (flags.moveBackward) camera.moveBackward(moveRate);
+            if (flags.moveUp) camera.moveUp(moveRate);
+            if (flags.moveDown) camera.moveDown(moveRate);
+            if (flags.moveLeft) camera.moveLeft(moveRate);
+            if (flags.moveRight) camera.moveRight(moveRate);
+            if (flags.lookLeft) camera.lookLeft(lookRate);
+            if (flags.lookRight) camera.lookRight(lookRate);
+            if (flags.lookUp) camera.lookUp(lookRate);
+            if (flags.lookDown) camera.lookDown(lookRate);
+        });
+    }
+
+    function setupLightingControls(viewer) {
+      const brightness = document.getElementById('brightness');
+      const contrast = document.getElementById('contrast');
+      const gamma = document.getElementById('gamma');
+      
+      const stage = new Cesium.PostProcessStage({
+        fragmentShader: `
+          uniform sampler2D colorTexture;
+          in vec2 v_textureCoordinates;
+          uniform float u_brightness;
+          uniform float u_contrast;
+          uniform float u_gamma;
+
+          void main(void) {
+            vec4 color = texture(colorTexture, v_textureCoordinates);
+            vec3 rgb = color.rgb;
+            rgb = pow(rgb, vec3(1.0 / u_gamma));
+            rgb = (rgb - 0.5) * u_contrast + 0.5;
+            rgb *= u_brightness;
+            out_FragColor = vec4(rgb, color.a);
+          }
+        `,
+        uniforms: {
+          u_brightness: parseFloat(brightness.value),
+          u_contrast: parseFloat(contrast.value),
+          u_gamma: parseFloat(gamma.value)
+        }
+      });
+
+      viewer.scene.postProcessStages.add(stage);
+
+      brightness.oninput = () => stage.uniforms.u_brightness = parseFloat(brightness.value);
+      contrast.oninput = () => stage.uniforms.u_contrast = parseFloat(contrast.value);
+      gamma.oninput = () => stage.uniforms.u_gamma = parseFloat(gamma.value);
+    }
+
+    function setupMeasurementTools(viewer) {
+      const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+      const display = document.getElementById('measurement-display');
+      let activeTool = null;
+      let points = [];
+      let entities = [];
+      let dynamicEntity = null;
+
+      const buttons = {
+        distance: document.getElementById('distanceBtn'),
+        area: document.getElementById('areaBtn'),
+        clear: document.getElementById('clearBtn')
+      };
+
+      const clear = () => {
+        activeTool = null;
+        points = [];
+        entities.forEach(e => viewer.entities.remove(e));
+        entities = [];
+        if (dynamicEntity) viewer.entities.remove(dynamicEntity);
+        dynamicEntity = null;
+        Object.values(buttons).forEach(b => b.classList.remove('active'));
+        display.textContent = 'Select a tool to begin measuring.';
+      };
+      
+      const activateTool = (toolName) => {
+        if (activeTool === toolName) {
+          clear();
+          return;
+        }
+        clear();
+        activeTool = toolName;
+        buttons[toolName].classList.add('active');
+        display.textContent = 'Click points on the globe. Right-click to finish area measurement.';
+      };
+
+      buttons.distance.onclick = () => activateTool('distance');
+      buttons.area.onclick = () => activateTool('area');
+      buttons.clear.onclick = clear;
+
+      const getPoint = (event) => viewer.camera.pickEllipsoid(event.position || event.endPosition, viewer.scene.globe.ellipsoid);
+
+      handler.setInputAction((event) => {
+        const position = getPoint(event);
+        if (!activeTool || !Cesium.defined(position)) return;
+
+        points.push(position);
+        entities.push(viewer.entities.add({ position, point: { pixelSize: 8, color: Cesium.Color.YELLOW } }));
+
+        if (activeTool === 'distance' && points.length === 2) {
+          const distance = new Cesium.EllipsoidGeodesic(
+            Cesium.Cartographic.fromCartesian(points[0]),
+            Cesium.Cartographic.fromCartesian(points[1])
+          ).surfaceDistance;
+          display.textContent = `Distance: ${(distance / 1000).toFixed(2)} km`;
+          entities.push(viewer.entities.add({ polyline: { positions: points, width: 3, material: Cesium.Color.YELLOW, clampToGround: true } }));
+          clear();
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      
+      handler.setInputAction((event) => {
+        if (activeTool === 'area' && points.length >= 3) {
+          const area = calculate2DArea(points);
+          display.textContent = `Area: ${(area / 1000000).toFixed(2)} km²`;
+          entities.push(viewer.entities.add({ polygon: { hierarchy: new Cesium.PolygonHierarchy(points), material: Cesium.Color.YELLOW.withAlpha(0.5) } }));
+          clear();
+        }
+      }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+      handler.setInputAction((event) => {
+        const position = getPoint(event);
+        if (!activeTool || !Cesium.defined(position) || points.length === 0) {
+            if (dynamicEntity) viewer.entities.remove(dynamicEntity);
+            dynamicEntity = null;
+            return;
+        }
+        
+        if (!dynamicEntity) {
+            if (activeTool === 'distance') {
+                dynamicEntity = viewer.entities.add({ polyline: { positions: [], width: 3, material: Cesium.Color.YELLOW.withAlpha(0.5), clampToGround: true } });
+            } else {
+                dynamicEntity = viewer.entities.add({ polygon: { hierarchy: {}, material: Cesium.Color.YELLOW.withAlpha(0.5) } });
+            }
+        }
+
+        if (activeTool === 'distance') {
+            dynamicEntity.polyline.positions = [points[0], position];
+        } else if (points.length >= 2) {
+            dynamicEntity.polygon.hierarchy = new Cesium.PolygonHierarchy([...points, position]);
+        }
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+      
+      const calculate2DArea = (positions) => {
+        if (positions.length < 3) return 0;
+        const cartographics = positions.map(p => Cesium.Cartographic.fromCartesian(p));
+        const coords = cartographics.map(c => [Cesium.Math.toDegrees(c.longitude), Cesium.Math.toDegrees(c.latitude)]);
+        coords.push(coords[0]);
+
+        let area = 0;
+        for (let i = 0; i < coords.length - 1; i++) {
+            area += Cesium.Math.toRadians(coords[i+1][0] - coords[i][0]) * (2 + Math.sin(Cesium.Math.toRadians(coords[i][1])) + Math.sin(Cesium.Math.toRadians(coords[i+1][1])));
+        }
+        area = Math.abs(area * 6378137 * 6378137 / 2.0);
+        return area;
+      };
+    }
+
+    // --- Run the application ---
+    main();
+  </script>
+</body>
+</html>
+
