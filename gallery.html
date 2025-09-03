@@ -7,53 +7,81 @@
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   <style>
     html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .panel { position: absolute; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(5px); color: white; padding: 15px; box-sizing: border-box; }
-    #gallery { top: 0; left: 0; width: 250px; height: 100%; overflow-y: auto; }
-    #gallery h2 { margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 10px; }
-    #gallery ul { list-style: none; padding: 0; }
-    #gallery li { padding: 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+    .panel { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(5px); color: white; padding: 15px; box-sizing: border-box; border-radius: 8px; }
+    #left-column { position: absolute; top: 0; left: 0; width: 260px; height: 100%; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(5px); display: flex; flex-direction: column; gap: 15px; padding: 15px; box-sizing: border-box; color: white; }
+    #gallery { flex-shrink: 0; }
+    #gallery, #data-layers { border-bottom: 1px solid #555; padding-bottom: 15px;}
+    #gallery h2, .control-panel h4 { margin-top: 0; color: white; }
+    #gallery ul, #dataLayersList { list-style: none; padding: 0; margin: 0; }
+    #gallery li, #dataLayersList li { padding: 10px; border-radius: 4px; transition: background-color 0.2s; font-size: 14px; }
     #gallery li:hover, #gallery li.active { background-color: #007bff; }
-    #toolbar { top: 15px; left: 280px; padding: 8px; border-radius: 8px; display: flex; gap: 10px; }
-    #toolbar button { background-color: #444; color: white; border: 1px solid #666; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+    #dataLayersList li { display: flex; align-items: center; background-color: rgba(0,0,0,0.2); margin-bottom: 5px; cursor: pointer; }
+    #dataLayersList li span.layer-name { flex-grow: 1; }
+    #dataLayersList .layer-controls { display: flex; align-items: center; gap: 8px; }
+    #dataLayersList .layer-controls .visibility-toggle svg { width: 18px; height: 18px; fill: #fff; }
+    #dataLayersList button { background: #c0392b; color: white; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; }
+    #scrollable-controls { overflow-y: auto; flex-grow: 1; }
+    .toolbar-group { display: flex; gap: 10px; }
+    #toolbars { position: absolute; top: 15px; left: 290px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
+    #toolbar button, #toolbar a { background-color: #444; color: white; border: 1px solid #666; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; }
     #toolbar button.active { background-color: #007bff; border-color: #007bff; }
-    #lighting-controls { top: 75px; left: 265px; width: 220px; border-radius: 8px; padding: 10px 15px; }
-    #lighting-controls label { display: block; margin-bottom: 5px; font-size: 14px; }
-    #lighting-controls input { width: 100%; }
-    #measurement-display { top: 15px; right: 15px; border-radius: 8px; font-size: 16px; text-align: right; line-height: 1.5; white-space: pre; }
-    #controlsHelp { bottom: 15px; right: 15px; padding: 10px 15px; border-radius: 8px; font-size: 14px; }
+    #recenterBtn, #backBtn { background-color: #007bff; border-color: #007bff; }
+    #recenterBtn:hover, #backBtn:hover { background-color: #0056b3; }
+    #backBtn { text-decoration: none; }
+    .control-panel { padding: 10px 15px; background: none; }
+    .control-panel label { display: block; margin-bottom: 5px; font-size: 14px; }
+    .control-panel input[type="range"], .control-panel input[type="file"] { width: 100%; }
+    #measurement-display { position: absolute; top: 135px; left: 290px; font-size: 16px; text-align: left; line-height: 1.5; white-space: pre; z-index: 10; padding: 10px; }
+    #share-panel { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #555; }
+    #share-panel h4 { font-size: 1rem; margin-bottom: 10px; }
+    #share-icons { display: flex; justify-content: space-around; }
+    #share-icons a { color: white; }
+    #share-icons svg { width: 24px; height: 24px; fill: white; cursor: pointer; transition: opacity 0.2s; }
+    #share-icons svg:hover { opacity: 0.7; }
   </style>
 </head>
 <body>
   
   <div id="cesiumContainer"></div>
 
-  <div id="gallery" class="panel">
-    <h2>Model Gallery</h2>
-    <ul id="modelList"></ul>
+  <div id="left-column">
+    <div id="gallery">
+      <h2>Model Gallery</h2>
+      <ul id="modelList"></ul>
+      <div id="share-panel">
+          <h4>Share Model</h4>
+          <div id="share-icons">
+              <a id="copyLinkBtn" title="Copy Link"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></a>
+              <a id="whatsappShareBtn" target="_blank" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.487 5.235 3.487 8.413.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.433-9.89-9.889-9.89-5.452 0-9.887 4.434-9.889 9.886-.001 2.269.654 4.288 1.902 6.046l-1.105 4.029 4.029-1.106z"/></svg></a>
+              <a id="gmailShareBtn" target="_blank" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+          </div>
+      </div>
+    </div>
+    <div id="scrollable-controls">
+        <!-- Other panels like Data Layers and Lighting Controls would go here -->
+    </div>
   </div>
 
-  <div id="toolbar" class="panel">
-    <button id="recenterBtn">Recenter</button>
-    <button id="distanceBtn">Measure Distance</button>
-    <button id="areaBtn">Measure Area</button>
-    <button id="clearBtn">Clear</button>
+  <div id="toolbars">
+      <div id="toolbar" class="panel toolbar-group">
+        <a href="index.html" id="backBtn">Back</a>
+        <button id="recenterBtn">Recenter</button>
+        <button id="fullscreenBtn" title="Fullscreen">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/></svg>
+        </button>
+        <button id="distanceBtn">Distance</button>
+        <button id="areaBtn">Area</button>
+        <button id="volumeBtn">Volume</button>
+        <button id="clearMeasurementsBtn">Clear</button>
+      </div>
+      <!-- Drawing toolbar can be added here if needed -->
   </div>
   
-  <div id="lighting-controls" class="panel">
-    <label for="brightness">Brightness</label>
-    <input type="range" id="brightness" min="0" max="3" value="1" step="0.1">
-    <label for="contrast">Contrast</label>
-    <input type="range" id="contrast" min="0" max="3" value="1" step="0.1">
-    <label for="gamma">Gamma</label>
-    <input type="range" id="gamma" min="0.1" max="4" value="2.2" step="0.1">
-  </div>
-
-  <div id="measurement-display" class="panel">Select a tool to begin measuring.</div>
-  <div id="controlsHelp" class="panel">
-      <b>Controls:</b> W, S, A, D, Q, E | Arrows (Look) | Left-Click (Measure)
-  </div>
+  <div id="measurement-display" class="panel">Select a tool to begin.</div>
 
   <script>
+    window.CESIUM_BASE_URL = 'https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/';
+
     // ===============================================
     // PART 1: YOUR CUSTOM CONFIGURATION
     // ===============================================
@@ -61,8 +89,9 @@
 
     const models = [
       { 
+        id: "production_3", // URL-friendly ID for sharing
         name: "Production 3", 
-        url: "https://quadspectat-models.fra1.cdn.digitaloceanspaces.com/Production_3/Scene/Production_3.json" 
+        url: "https://quadspectat-models.fra1.cdn.digitaloceanspaces.com/Production_3/Scene/Production_3.json",
       }
     ];
 
@@ -76,15 +105,20 @@
       try {
         const viewer = new Cesium.Viewer('cesiumContainer', {
           terrainProvider: await Cesium.Terrain.fromWorldTerrain(),
-          infoBox: false, selectionIndicator: false
+          infoBox: false, 
+          selectionIndicator: false,
+          baseLayerPicker: true, 
         });
+
+        viewer.canvas.oncontextmenu = (e) => e.preventDefault();
         viewer.scene.globe.enableLighting = true;
 
         models.forEach((model) => {
           const listItem = document.createElement('li');
+          listItem.id = `model-list-item-${model.id}`;
           listItem.textContent = model.name;
           listItem.onclick = () => {
-            loadModel(viewer, model.url);
+            loadModel(viewer, model);
             document.querySelectorAll('#modelList li').forEach(el => el.classList.remove('active'));
             listItem.classList.add('active');
           };
@@ -93,225 +127,197 @@
 
         document.getElementById('recenterBtn').onclick = () => { if (currentTileset) viewer.zoomTo(currentTileset); };
         
-        setupMovementControls(viewer);
-        setupLightingControls(viewer);
-        setupMeasurementTools(viewer);
+        setupShareControls(viewer);
+        setupFullscreenButton();
+        setupInteractionTools(viewer);
 
-        if (models.length > 0) modelListElement.querySelector('li').click();
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedModelId = urlParams.get('model');
+        let initialModelId = models.length > 0 ? models[0].id : null;
+
+        if (requestedModelId) {
+            const foundModel = models.find(m => m.id === requestedModelId);
+            if (foundModel) initialModelId = foundModel.id;
+        }
+        
+        if (initialModelId) {
+            document.getElementById(`model-list-item-${initialModelId}`).click();
+        }
         
       } catch (error) { console.error(`An error occurred: ${error}`); }
     }
 
-    async function loadModel(viewer, url) {
-        if (currentTileset) {
-            viewer.scene.primitives.remove(currentTileset);
-            currentTileset = null;
-        }
+    async function loadModel(viewer, model) {
+        if (currentTileset) viewer.scene.primitives.remove(currentTileset);
         try {
-            const tileset = await Cesium.Cesium3DTileset.fromUrl(url);
+            const tileset = await Cesium.Cesium3DTileset.fromUrl(model.url);
+            tileset.modelId = model.id; // Attach model ID for sharing
             viewer.scene.primitives.add(tileset);
             await viewer.zoomTo(tileset);
             currentTileset = tileset;
+            document.getElementById('share-panel').style.display = 'block';
         } catch (error) {
-            console.error(`Failed to load model from ${url}. Full error:`, error);
-            // Provide a more helpful alert to the user.
-            alert(
-                `MODEL FAILED TO LOAD.\n\n` +
-                `This is usually due to one of two reasons:\n\n` +
-                `1. 404 Not Found: The URL is incorrect. Double-check the link in your 'models' list.\n` +
-                `URL: ${url}\n\n` +
-                `2. CORS Error: Your server is blocking the request. Go to your DigitalOcean Space settings and ensure CORS is enabled for your domain (or '*' for testing).\n\n` +
-                `Check the developer console (F12) for more details.`
-            );
+            console.error(`Failed to load model from ${model.url}. Full error:`, error);
         }
     }
+    
+    // ===============================================
+    // PART 3: SETUP FUNCTIONS
+    // ===============================================
+    function setupFullscreenButton() {
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        fullscreenBtn.onclick = () => {
+            if (Cesium.Fullscreen.fullscreen) {
+                Cesium.Fullscreen.exitFullscreen();
+            } else {
+                // Use the main cesium container for true fullscreen of the viewer only
+                Cesium.Fullscreen.requestFullscreen(document.getElementById('cesiumContainer'));
+            }
+        };
+    }
 
-    function setupMovementControls(viewer) {
-        const flags = {
-            moveForward: false, moveBackward: false, moveUp: false, moveDown: false,
-            moveLeft: false, moveRight: false, lookLeft: false, lookRight: false,
-            lookUp: false, lookDown: false
+    function setupShareControls(viewer) {
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const whatsappShareBtn = document.getElementById('whatsappShareBtn');
+        const gmailShareBtn = document.getElementById('gmailShareBtn');
+
+        const getShareUrl = () => {
+            if (currentTileset && currentTileset.modelId) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('model', currentTileset.modelId);
+                return url.href;
+            }
+            return null;
         };
 
-        const keyMap = {
-            'w': 'moveForward', 's': 'moveBackward', 'q': 'moveUp', 'e': 'moveDown',
-            'a': 'moveLeft', 'd': 'moveRight', 'ArrowLeft': 'lookLeft', 'ArrowRight': 'lookRight',
-            'ArrowUp': 'lookUp', 'ArrowDown': 'lookDown'
+        copyLinkBtn.onclick = () => {
+            const url = getShareUrl();
+            if (url) {
+                navigator.clipboard.writeText(url).then(() => alert('Link copied!'), () => alert('Failed to copy.'));
+            }
         };
 
-        document.addEventListener('keydown', (e) => {
-            const flag = keyMap[e.key];
-            if (flag) flags[flag] = true;
-        });
-
-        document.addEventListener('keyup', (e) => {
-            const flag = keyMap[e.key];
-            if (flag) flags[flag] = false;
-        });
-
-        viewer.clock.onTick.addEventListener(() => {
-            const camera = viewer.camera;
-            const moveRate = camera.positionCartographic.height / 100.0;
-            const lookRate = 0.01;
-
-            if (flags.moveForward) camera.moveForward(moveRate);
-            if (flags.moveBackward) camera.moveBackward(moveRate);
-            if (flags.moveUp) camera.moveUp(moveRate);
-            if (flags.moveDown) camera.moveDown(moveRate);
-            if (flags.moveLeft) camera.moveLeft(moveRate);
-            if (flags.moveRight) camera.moveRight(moveRate);
-            if (flags.lookLeft) camera.lookLeft(lookRate);
-            if (flags.lookRight) camera.lookRight(lookRate);
-            if (flags.lookUp) camera.lookUp(lookRate);
-            if (flags.lookDown) camera.lookDown(lookRate);
-        });
+        whatsappShareBtn.onclick = () => {
+            const url = getShareUrl();
+            if(url) {
+                whatsappShareBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent('Check out this 3D model: ' + url)}`;
+            }
+        };
+        
+        gmailShareBtn.onclick = () => {
+            const url = getShareUrl();
+            if(url) {
+                const subject = "Check out this 3D Model";
+                const body = `I wanted to share this interactive 3D model with you:\n\n${url}`;
+                gmailShareBtn.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+        };
     }
 
-    function setupLightingControls(viewer) {
-      const brightness = document.getElementById('brightness');
-      const contrast = document.getElementById('contrast');
-      const gamma = document.getElementById('gamma');
-      
-      const stage = new Cesium.PostProcessStage({
-        fragmentShader: `
-          uniform sampler2D colorTexture;
-          in vec2 v_textureCoordinates;
-          uniform float u_brightness;
-          uniform float u_contrast;
-          uniform float u_gamma;
+    function setupInteractionTools(viewer) {
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+        const display = document.getElementById('measurement-display');
+        let activeTool = null;
+        let points = [];
+        let allEntities = [];
+        let dynamicEntity = null;
 
-          void main(void) {
-            vec4 color = texture(colorTexture, v_textureCoordinates);
-            vec3 rgb = color.rgb;
-            rgb = pow(rgb, vec3(1.0 / u_gamma));
-            rgb = (rgb - 0.5) * u_contrast + 0.5;
-            rgb *= u_brightness;
-            out_FragColor = vec4(rgb, color.a);
-          }
-        `,
-        uniforms: {
-          u_brightness: parseFloat(brightness.value),
-          u_contrast: parseFloat(contrast.value),
-          u_gamma: parseFloat(gamma.value)
-        }
-      });
-
-      viewer.scene.postProcessStages.add(stage);
-
-      brightness.oninput = () => stage.uniforms.u_brightness = parseFloat(brightness.value);
-      contrast.oninput = () => stage.uniforms.u_contrast = parseFloat(contrast.value);
-      gamma.oninput = () => stage.uniforms.u_gamma = parseFloat(gamma.value);
-    }
-
-    function setupMeasurementTools(viewer) {
-      const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
-      const display = document.getElementById('measurement-display');
-      let activeTool = null;
-      let points = [];
-      let entities = [];
-      let dynamicEntity = null;
-
-      const buttons = {
-        distance: document.getElementById('distanceBtn'),
-        area: document.getElementById('areaBtn'),
-        clear: document.getElementById('clearBtn')
-      };
-
-      const clear = () => {
-        activeTool = null;
-        points = [];
-        entities.forEach(e => viewer.entities.remove(e));
-        entities = [];
-        if (dynamicEntity) viewer.entities.remove(dynamicEntity);
-        dynamicEntity = null;
-        Object.values(buttons).forEach(b => b.classList.remove('active'));
-        display.textContent = 'Select a tool to begin measuring.';
-      };
-      
-      const activateTool = (toolName) => {
-        if (activeTool === toolName) {
-          clear();
-          return;
-        }
-        clear();
-        activeTool = toolName;
-        buttons[toolName].classList.add('active');
-        display.textContent = 'Click points on the globe. Right-click to finish area measurement.';
-      };
-
-      buttons.distance.onclick = () => activateTool('distance');
-      buttons.area.onclick = () => activateTool('area');
-      buttons.clear.onclick = clear;
-
-      const getPoint = (event) => viewer.camera.pickEllipsoid(event.position || event.endPosition, viewer.scene.globe.ellipsoid);
-
-      handler.setInputAction((event) => {
-        const position = getPoint(event);
-        if (!activeTool || !Cesium.defined(position)) return;
-
-        points.push(position);
-        entities.push(viewer.entities.add({ position, point: { pixelSize: 8, color: Cesium.Color.YELLOW } }));
-
-        if (activeTool === 'distance' && points.length === 2) {
-          const distance = new Cesium.EllipsoidGeodesic(
-            Cesium.Cartographic.fromCartesian(points[0]),
-            Cesium.Cartographic.fromCartesian(points[1])
-          ).surfaceDistance;
-          display.textContent = `Distance: ${(distance / 1000).toFixed(2)} km`;
-          entities.push(viewer.entities.add({ polyline: { positions: points, width: 3, material: Cesium.Color.YELLOW, clampToGround: true } }));
-          clear();
-        }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-      
-      handler.setInputAction((event) => {
-        if (activeTool === 'area' && points.length >= 3) {
-          const area = calculate2DArea(points);
-          display.textContent = `Area: ${(area / 1000000).toFixed(2)} km²`;
-          entities.push(viewer.entities.add({ polygon: { hierarchy: new Cesium.PolygonHierarchy(points), material: Cesium.Color.YELLOW.withAlpha(0.5) } }));
-          clear();
-        }
-      }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-
-      handler.setInputAction((event) => {
-        const position = getPoint(event);
-        if (!activeTool || !Cesium.defined(position) || points.length === 0) {
+        const buttons = {
+            distance: document.getElementById('distanceBtn'),
+            area: document.getElementById('areaBtn'),
+            volume: document.getElementById('volumeBtn'),
+            clear: document.getElementById('clearMeasurementsBtn')
+        };
+        
+        const clear = () => {
+            if (activeTool) buttons[activeTool].classList.remove('active');
+            activeTool = null;
+            points = [];
             if (dynamicEntity) viewer.entities.remove(dynamicEntity);
             dynamicEntity = null;
-            return;
-        }
+        };
+
+        const clearAll = () => {
+            clear();
+            allEntities.forEach(e => viewer.entities.remove(e));
+            allEntities = [];
+            display.textContent = 'Select a tool to begin.';
+        };
         
-        if (!dynamicEntity) {
+        const activateTool = (toolName) => {
+            if (activeTool === toolName) { clear(); return; }
+            clear();
+            activeTool = toolName;
+            buttons[toolName].classList.add('active');
+        };
+
+        buttons.distance.onclick = () => activateTool('distance');
+        buttons.area.onclick = () => activateTool('area');
+        buttons.volume.onclick = () => activateTool('volume');
+        buttons.clear.onclick = clearAll;
+        
+        const getPoint = (event) => viewer.scene.pickPosition(event.position || event.endPosition);
+
+        handler.setInputAction((event) => {
+            const position = getPoint(event);
+            if (!activeTool || !Cesium.defined(position)) return;
+            points.push(position);
+            const entity = viewer.entities.add({ position, point: { pixelSize: 8, color: Cesium.Color.YELLOW, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+            allEntities.push(entity);
+            if (activeTool === 'distance' && points.length === 2) finalize();
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        handler.setInputAction(() => {
+            if (points.length >= 3 && (activeTool === 'area' || activeTool === 'volume')) finalize();
+        }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+        handler.setInputAction((event) => {
+            const position = getPoint(event);
+            if (!activeTool || points.length === 0 || !Cesium.defined(position)) return;
             if (activeTool === 'distance') {
-                dynamicEntity = viewer.entities.add({ polyline: { positions: [], width: 3, material: Cesium.Color.YELLOW.withAlpha(0.5), clampToGround: true } });
-            } else {
-                dynamicEntity = viewer.entities.add({ polygon: { hierarchy: {}, material: Cesium.Color.YELLOW.withAlpha(0.5) } });
+                if (!dynamicEntity) dynamicEntity = viewer.entities.add({ polyline: { positions: [], width: 3, material: Cesium.Color.YELLOW.withAlpha(0.5) }});
+                dynamicEntity.polyline.positions = [points[0], position];
+            } else if (activeTool === 'area' || activeTool === 'volume') {
+                if (!dynamicEntity) dynamicEntity = viewer.entities.add({ polygon: { hierarchy: {}, material: Cesium.Color.YELLOW.withAlpha(0.5) } });
+                dynamicEntity.polygon.hierarchy = new Cesium.PolygonHierarchy([...points, position]);
             }
-        }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-        if (activeTool === 'distance') {
-            dynamicEntity.polyline.positions = [points[0], position];
-        } else if (points.length >= 2) {
-            dynamicEntity.polygon.hierarchy = new Cesium.PolygonHierarchy([...points, position]);
-        }
-      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-      
-      const calculate2DArea = (positions) => {
-        if (positions.length < 3) return 0;
-        const cartographics = positions.map(p => Cesium.Cartographic.fromCartesian(p));
-        const coords = cartographics.map(c => [Cesium.Math.toDegrees(c.longitude), Cesium.Math.toDegrees(c.latitude)]);
-        coords.push(coords[0]);
+        const finalize = () => {
+            if (activeTool === 'distance') {
+                const entity = viewer.entities.add({ polyline: { positions: points, width: 3, material: Cesium.Color.YELLOW } });
+                allEntities.push(entity);
+                display.textContent = `Distance: ${Cesium.Cartesian3.distance(points[0], points[1]).toFixed(2)} m`;
+            } else if (activeTool === 'area' || activeTool === 'volume') {
+                const area = calculate3DArea(points);
+                let text = `Surface Area: ${area.toFixed(2)} m²`;
+                if (activeTool === 'volume') {
+                    const cartographics = points.map(p => Cesium.Cartographic.fromCartesian(p));
+                    const minHeight = Math.min(...cartographics.map(p => p.height));
+                    const maxHeight = Math.max(...cartographics.map(p => p.height));
+                    text += `\nEst. Volume: ${(area * (maxHeight - minHeight)).toFixed(2)} m³`;
+                }
+                display.textContent = text;
+                const entity = viewer.entities.add({ polygon: { hierarchy: new Cesium.PolygonHierarchy(points), material: Cesium.Color.YELLOW.withAlpha(0.5) } });
+                allEntities.push(entity);
+            }
+            clear();
+        };
 
-        let area = 0;
-        for (let i = 0; i < coords.length - 1; i++) {
-            area += Cesium.Math.toRadians(coords[i+1][0] - coords[i][0]) * (2 + Math.sin(Cesium.Math.toRadians(coords[i][1])) + Math.sin(Cesium.Math.toRadians(coords[i+1][1])));
-        }
-        area = Math.abs(area * 6378137 * 6378137 / 2.0);
-        return area;
-      };
+        const calculate3DArea = (positions) => {
+          if (positions.length < 3) return 0;
+          let totalArea = 0;
+          for (let i = 1; i < positions.length - 1; i++) {
+              const v1 = Cesium.Cartesian3.subtract(positions[i], positions[0], new Cesium.Cartesian3());
+              const v2 = Cesium.Cartesian3.subtract(positions[i + 1], positions[0], new Cesium.Cartesian3());
+              totalArea += Cesium.Cartesian3.cross(v1, v2, new Cesium.Cartesian3()).magnitude / 2.0;
+          }
+          return totalArea;
+        };
     }
-
+    
     // --- Run the application ---
-    main();
+    document.addEventListener('DOMContentLoaded', main);
   </script>
 </body>
 </html>
