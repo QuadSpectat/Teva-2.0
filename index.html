@@ -4,160 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quadspectat - Immersive 3D & Aerial Media Solutions</title>
-    
-    <!-- Tailwind CSS & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'brand-green': '#A3E635',
-                        'brand-dark': '#111827',
-                        'brand-mid': '#1F2937',
-                        'brand-light': '#D1D5DB',
-                        'brand-muted': '#6B7280',
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #D1D5DB; }
-        .hero-gradient { background: radial-gradient(ellipse at 50% 30%, rgba(163, 230, 53, 0.1) 0%, rgba(17, 24, 39, 0) 70%); }
-        .feature-card { background-color: #1F2937; border: 1px solid #374151; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .feature-card:hover { transform: translateY(-8px); box-shadow: 0 10px 30px rgba(163, 230, 53, 0.08); }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .hero-gradient { background: radial-gradient(ellipse at 50% 30%, rgba(56, 189, 248, 0.15) 0%, rgba(13, 17, 23, 0) 70%); }
+        .feature-card { background-color: #0f172a; border: 1px solid #1e293b; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .feature-card:hover { transform: translateY(-8px); box-shadow: 0 10px 30px rgba(56, 189, 248, 0.1); }
         .cta-button { transition: all 0.3s ease; }
-        .cta-button:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(163, 230, 53, 0.3); }
-        .process-step::before { content: ''; position: absolute; left: 50%; top: 4rem; height: calc(100% - 2rem); width: 2px; background: #374151; z-index: -1; }
-        .process-step:last-child::before { display: none; }
+        .cta-button:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); }
     </style>
 </head>
 <body class="antialiased">
-
-    <!-- Header -->
-    <header class="fixed w-full top-0 left-0 z-50 transition-all duration-300 bg-brand-dark/50 backdrop-blur-lg border-b border-brand-mid/50">
-        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="#" class="flex items-center gap-3">
-                <img src="logo.png" alt="Quadspectat Logo" class="h-10"> 
-                <span class="text-2xl font-bold text-white tracking-wider uppercase">Quadspectat</span>
-            </a>
-            <nav class="hidden md:flex space-x-8 text-brand-light">
-                <a href="#features" class="hover:text-brand-green transition">Features</a>
-                <a href="gallery.html" class="hover:text-brand-green transition">Showcase</a>
-                <a href="#process" class="hover:text-brand-green transition">Process</a>
-                <a href="#contact" class="hover:text-brand-green transition">Contact</a>
+    <header class="fixed w-full top-0 left-0 z-50 transition-all duration-300 bg-slate-950/50 backdrop-blur-lg border-b border-slate-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-3xl font-bold text-white tracking-wider">QUADSPECTAT</a>
+            <nav class="hidden md:flex space-x-8 text-slate-300">
+                <a href="#features" class="hover:text-sky-400 transition">Features</a>
+                <a href="#process" class="hover:text-sky-400 transition">Process</a>
+                <a href="#contact" class="hover:text-sky-400 transition">Contact</a>
             </nav>
-            <a href="gallery.html" class="bg-brand-green text-brand-dark px-5 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition cta-button">
-                Live Demo
-            </a>
+            <a href="gallery.html" class="bg-sky-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-sky-600 transition cta-button">Launch Viewer</a>
         </div>
     </header>
-
     <main>
-        <!-- Hero Section -->
         <section class="relative min-h-screen flex items-center justify-center text-center overflow-hidden pt-20">
             <div class="absolute inset-0 z-0 hero-gradient">
-                 <img src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?q=80&w=2755&auto=format&fit=crop" 
-                     alt="Abstract digital landscape" 
-                     class="w-full h-full object-cover opacity-10">
+                <img src="https://images.unsplash.com/photo-1618005198919-d3d-4b5a92ead?q=80&w=2574&auto=format&fit=crop" alt="Abstract blue digital waveform" class="w-full h-full object-cover opacity-10">
             </div>
             <div class="relative z-10 px-6 max-w-4xl mx-auto">
-                <h1 class="text-4xl md:text-7xl font-extrabold text-white leading-tight tracking-tight">
-                    High-Fidelity Digital Twins from Aerial Media
-                </h1>
-                <p class="text-lg md:text-xl text-brand-muted mt-6">
-                    Quadspectat transforms drone and terrestrial data into interactive 3D models. Visualize, measure, and collaborate on your projects with unparalleled clarity.
-                </p>
+                <h1 class="text-4xl md:text-7xl font-bold text-white leading-tight tracking-tight">Transforming Reality into Actionable Digital Twins</h1>
+                <p class="text-lg md:text-xl text-slate-400 mt-6">Quadspectat delivers high-fidelity 3D model hosting and visualization for complex aerial and terrestrial data. Interact, measure, and collaborate with your projects like never before.</p>
                 <div class="mt-10">
-                    <a href="gallery.html" class="bg-brand-green text-brand-dark px-8 py-4 rounded-lg font-bold text-lg hover:bg-opacity-90 transition cta-button">
-                        Explore Interactive Viewer
-                    </a>
+                    <a href="gallery.html" class="bg-sky-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-sky-600 transition cta-button">Explore the Interactive Viewer</a>
                 </div>
             </div>
         </section>
-
-        <!-- Features Section -->
-        <section id="features" class="py-24 bg-brand-dark">
+        <section id="features" class="py-24 bg-slate-950">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-16 max-w-3xl mx-auto">
-                    <h2 class="text-3xl md:text-4xl font-bold text-white">A New Dimension of Data Interaction</h2>
-                    <p class="text-brand-muted mt-4">Our platform provides the tools you need to turn complex 3D scans into actionable insights.</p>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">Precision Tools for a New Perspective</h2>
+                    <p class="text-slate-400 mt-4">Unlock the full potential of your 3D data with our powerful, browser-based feature set.</p>
                 </div>
                 <div class="grid md:grid-cols-3 gap-8">
                     <div class="feature-card p-8 rounded-lg">
                         <h3 class="text-xl font-bold text-white mb-2">Immersive 3D Visualization</h3>
-                        <p class="text-brand-muted">Stream and render massive models from any source with exceptional performance. Navigate complex environments with intuitive, game-like controls.</p>
+                        <p class="text-slate-400">Stream and render massive models from ContextCapture, drones, and other sources with exceptional performance. Navigate complex environments with intuitive, game-like controls.</p>
                     </div>
                     <div class="feature-card p-8 rounded-lg">
                         <h3 class="text-xl font-bold text-white mb-2">Advanced Analysis & Annotation</h3>
-                        <p class="text-brand-muted">Perform accurate measurements for distance, area, and volume. Draw shapes, add notes, and export your annotations to KML for use in other GIS software.</p>
+                        <p class="text-slate-400">Perform accurate measurements for distance, area, and volume. Draw shapes, add notes, and export your annotations to KML for use in other GIS software.</p>
                     </div>
                     <div class="feature-card p-8 rounded-lg">
                         <h3 class="text-xl font-bold text-white mb-2">Dynamic Data Integration</h3>
-                        <p class="text-brand-muted">Overlay geospatial data like KML/KMZ files, or import other 3D models (GLB/glTF) to view them in context. Control lighting and color to enhance your analysis.</p>
+                        <p class="text-slate-400">Overlay geospatial data like KML/KMZ files, or import other 3D models (GLB/glTF) to view them in context. Control lighting and color to enhance your analysis.</p>
                     </div>
                 </div>
             </div>
         </section>
-        
-        <!-- Process Section -->
-        <section id="process" class="py-24 bg-brand-dark/50">
-             <div class="text-center mb-16 max-w-3xl mx-auto">
-                <h2 class="text-3xl md:text-4xl font-bold text-white">Our Streamlined Workflow</h2>
-                <p class="text-brand-muted mt-4">From raw data to interactive model, our process is designed for efficiency and quality.</p>
-            </div>
-            <div class="grid md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
-                <div class="p-8 relative process-step">
-                    <div class="relative bg-brand-mid w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-brand-green">
-                         <span class="text-2xl font-bold text-brand-green">1</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Data Acquisition & Upload</h3>
-                    <p class="text-brand-muted">Capture your site with drones or scanners. We provide a secure portal for you to upload your raw data and project files.</p>
+        <section id="process" class="py-24 bg-slate-900/50">
+            <div class="container mx-auto px-6">
+                 <div class="text-center mb-16 max-w-3xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">Our Streamlined Workflow</h2>
+                    <p class="text-slate-400 mt-4">From raw data to interactive model, our process is designed for efficiency and quality.</p>
                 </div>
-                 <div class="p-8 relative process-step">
-                    <div class="relative bg-brand-mid w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-brand-green">
-                         <span class="text-2xl font-bold text-brand-green">2</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Processing & Optimization</h3>
-                    <p class="text-brand-muted">Our cloud servers process your data, generating a high-fidelity 3D model optimized for seamless web streaming.</p>
-                </div>
-                 <div class="p-8 relative process-step">
-                     <div class="relative bg-brand-mid w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-brand-green">
-                         <span class="text-2xl font-bold text-brand-green">3</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Visualize & Collaborate</h3>
-                    <p class="text-brand-muted">Access your interactive model via a private link. Use our powerful tools to analyze, annotate, and share insights with your team.</p>
+                <div class="grid md:grid-cols-3 gap-8 text-center">
+                    <div class="p-8"><div class="text-4xl text-sky-400 font-bold mb-2">1</div><h3 class="text-xl font-bold text-white mb-2">Data Acquisition & Upload</h3><p class="text-slate-400">Capture your site with drones or terrestrial scanners. We provide a secure portal for you to upload your raw data and project files.</p></div>
+                     <div class="p-8"><div class="text-4xl text-sky-400 font-bold mb-2">2</div><h3 class="text-xl font-bold text-white mb-2">Processing & Optimization</h3><p class="text-slate-400">Our powerful cloud servers process your data, generating a high-fidelity 3D model optimized for seamless web streaming.</p></div>
+                     <div class="p-8"><div class="text-4xl text-sky-400 font-bold mb-2">3</div><h3 class="text-xl font-bold text-white mb-2">Visualize & Collaborate</h3><p class="text-slate-400">Access your interactive model through a private link. Use our powerful tools to analyze, annotate, and share insights with your team.</p></div>
                 </div>
             </div>
         </section>
-
-        <!-- Contact Section -->
-        <section id="contact" class="py-24 bg-brand-dark">
+        <section id="contact" class="py-24 bg-slate-950">
             <div class="container mx-auto px-6 text-center max-w-3xl">
                 <h2 class="text-3xl md:text-4xl font-bold text-white">Ready to See Your Project in a New Dimension?</h2>
-                <p class="text-brand-muted mt-4">Contact us today to discuss your project requirements and get a personalized quote.</p>
+                <p class="text-slate-400 mt-4">Contact us today to discuss your project requirements and get a personalized quote.</p>
                 <div class="mt-8">
-                    <a href="mailto:contact@quadspectat.site" class="bg-brand-green text-brand-dark px-8 py-4 rounded-lg font-bold text-lg hover:bg-opacity-90 transition cta-button">
-                        Get in Touch
-                    </a>
+                    <a href="mailto:contact@quadspectat.site" class="bg-sky-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-sky-600 transition cta-button">Get in Touch</a>
                 </div>
             </div>
         </section>
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-brand-dark border-t border-brand-mid">
-        <div class="container mx-auto px-6 py-8 text-center text-brand-muted">
+    <footer class="bg-slate-950 border-t border-slate-800">
+        <div class="container mx-auto px-6 py-8 text-center text-slate-400">
             <p>&copy; 2025 Quadspectat. All rights reserved.</p>
         </div>
     </footer>
-
 </body>
 </html>
 

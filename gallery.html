@@ -8,54 +8,78 @@
   <style>
     html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .panel { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(5px); color: white; padding: 15px; box-sizing: border-box; border-radius: 8px; }
-    #left-column { position: absolute; top: 0; left: 0; width: 260px; height: 100%; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(5px); display: flex; flex-direction: column; gap: 15px; padding: 15px; box-sizing: border-box; color: white; }
+    #left-column { position: absolute; top: 0; left: 0; width: 260px; height: 100%; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(5px); display: flex; flex-direction: column; gap: 15px; padding: 15px; box-sizing: border-box; color: white; transition: transform 0.3s ease; z-index: 20; }
     #gallery { flex-shrink: 0; }
     #gallery, #data-layers { border-bottom: 1px solid #555; padding-bottom: 15px;}
     #gallery h2, .control-panel h4 { margin-top: 0; color: white; }
     #gallery ul, #dataLayersList { list-style: none; padding: 0; margin: 0; }
-    #gallery li, #dataLayersList li { padding: 10px; border-radius: 4px; transition: background-color 0.2s; font-size: 14px; }
+    #gallery li, #dataLayersList li { padding: 10px; border-radius: 4px; transition: background-color 0.2s; font-size: 14px; cursor: pointer; }
     #gallery li:hover, #gallery li.active { background-color: #007bff; }
-    #dataLayersList li { display: flex; align-items: center; background-color: rgba(0,0,0,0.2); margin-bottom: 5px; cursor: pointer; }
-    #dataLayersList li span.layer-name { flex-grow: 1; }
+    #dataLayersList li { display: flex; align-items: center; background-color: rgba(0,0,0,0.2); margin-bottom: 5px; }
+    #dataLayersList li span.layer-name { flex-grow: 1; margin: 0 8px; }
     #dataLayersList .layer-controls { display: flex; align-items: center; gap: 8px; }
-    #dataLayersList .layer-controls .visibility-toggle svg { width: 18px; height: 18px; fill: #fff; }
+    #dataLayersList .layer-controls .visibility-toggle svg { width: 18px; height: 18px; fill: #fff; cursor: pointer; }
     #dataLayersList button { background: #c0392b; color: white; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; }
     #scrollable-controls { overflow-y: auto; flex-grow: 1; }
     .toolbar-group { display: flex; gap: 10px; }
     #toolbars { position: absolute; top: 15px; left: 290px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
-    #toolbar button { background-color: #444; color: white; border: 1px solid #666; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+    #toolbar button, #toolbar a { background-color: #444; color: white; border: 1px solid #666; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; }
     #toolbar button.active { background-color: #007bff; border-color: #007bff; }
-    #recenterBtn { background-color: #007bff; border-color: #007bff; }
-    #recenterBtn:hover { background-color: #0056b3; }
+    #recenterBtn, #backBtn { background-color: #007bff; border-color: #007bff; }
+    #recenterBtn:hover, #backBtn:hover { background-color: #0056b3; }
+    #backBtn { text-decoration: none; }
     .control-panel { padding: 10px 15px; background: none; }
     .control-panel label { display: block; margin-bottom: 5px; font-size: 14px; }
     .control-panel input[type="range"], .control-panel input[type="file"] { width: 100%; }
     #measurement-display { position: absolute; top: 135px; left: 290px; font-size: 16px; text-align: left; line-height: 1.5; white-space: pre; z-index: 10; padding: 10px; }
+    #share-panel { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #555; }
+    #share-panel h4 { font-size: 1rem; margin-bottom: 10px; }
+    #share-icons { display: flex; justify-content: space-around; }
+    #share-icons a { color: white; }
+    #share-icons svg { width: 24px; height: 24px; fill: white; cursor: pointer; transition: opacity 0.2s; }
+    #share-icons svg:hover { opacity: 0.7; }
+    #mobile-menu-btn { display: none; }
+
+    @media (max-width: 768px) {
+        #left-column { transform: translateX(-100%); }
+        #left-column.open { transform: translateX(0); }
+        #toolbars { left: 15px; }
+        #measurement-display { left: 15px; top: 180px; }
+        #mobile-menu-btn {
+            display: block; position: absolute; top: 15px; left: 15px; z-index: 30;
+            background-color: #444; color: white; border: 1px solid #666; padding: 8px 12px; border-radius: 4px; cursor: pointer;
+        }
+    }
   </style>
 </head>
 <body>
   
   <div id="cesiumContainer"></div>
+  <button id="mobile-menu-btn">Menu</button>
 
   <div id="left-column">
     <div id="gallery">
       <h2>Model Gallery</h2>
       <ul id="modelList"></ul>
+      <div id="share-panel">
+          <h4>Share Model</h4>
+          <div id="share-icons">
+              <a id="copyLinkBtn" title="Copy Link"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></a>
+              <a id="whatsappShareBtn" target="_blank" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.487 5.235 3.487 8.413.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.433-9.89-9.889-9.89-5.452 0-9.887 4.434-9.889 9.886-.001 2.269.654 4.288 1.902 6.046l-1.105 4.029 4.029-1.106z"/></svg></a>
+              <a id="gmailShareBtn" target="_blank" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+          </div>
+      </div>
     </div>
     <div id="scrollable-controls">
       <div id="data-layers" class="control-panel">
         <h4>Data Layers</h4>
         <ul id="dataLayersList"></ul>
-        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-          <input type="checkbox" id="showDrawings" checked> <label for="showDrawings" style="margin:0;">Show Drawings</label>
-        </div>
         <hr style="border-color: #555; margin: 15px 0;">
         <input type="file" id="fileInput" accept=".kmz,.kml,.glb,.gltf">
-        <button id="exportDrawingsBtn" style="width: 100%; padding: 8px; margin-top: 10px; background-color: #28a745; border: none; border-radius: 4px; cursor: pointer;">Export Drawings</button>
       </div>
       <div id="lighting-controls" class="control-panel">
         <h4>Lighting & Detail</h4>
-        <label for="detailLevel">Detail Level (Lower is higher quality)</label>
+        <label for="detailLevel">Detail Level</label>
         <input type="range" id="detailLevel" min="2" max="32" value="16" step="1">
         <label for="brightness">Brightness</label>
         <input type="range" id="brightness" min="0" max="3" value="1" step="0.05">
@@ -75,18 +99,15 @@
 
   <div id="toolbars">
       <div id="toolbar" class="panel toolbar-group">
+        <a href="index.html" id="backBtn">Back</a>
         <button id="recenterBtn">Recenter</button>
-        <button id="distanceBtn">Measure Distance</button>
-        <button id="areaBtn">Measure Area</button>
-        <button id="volumeBtn">Measure Volume</button>
+        <button id="fullscreenBtn" title="Fullscreen">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/></svg>
+        </button>
+        <button id="distanceBtn">Distance</button>
+        <button id="areaBtn">Area</button>
+        <button id="volumeBtn">Volume</button>
         <button id="clearMeasurementsBtn">Clear</button>
-      </div>
-      <div id="drawing-toolbar" class="panel toolbar-group">
-        <button id="drawRectangleBtn">Draw Rectangle</button>
-        <button id="drawCurveBtn">Draw Curve</button>
-        <button id="freeDrawBtn">Free Draw</button>
-        <button id="addNoteBtn">Add Note</button>
-        <button id="clearDrawingsBtn">Clear</button>
       </div>
   </div>
   
@@ -102,7 +123,8 @@
 
     const models = [
       { 
-        name: "Givat Haviva 2025", 
+        id: "production_3",
+        name: "Givat Haviva", 
         url: "https://quadspectat-models.fra1.cdn.digitaloceanspaces.com/Givat%20Haviva/Scene/Cesium.json",
       }
     ];
@@ -127,6 +149,7 @@
 
         models.forEach((model) => {
           const listItem = document.createElement('li');
+          listItem.id = `model-list-item-${model.id}`;
           listItem.textContent = model.name;
           listItem.onclick = () => {
             loadModel(viewer, model);
@@ -138,33 +161,37 @@
 
         document.getElementById('recenterBtn').onclick = () => { if (currentTileset) viewer.zoomTo(currentTileset); };
         
-        setupMovementControls(viewer);
-        setupBackgroundColorPicker(viewer);
-        setupLightingControls(viewer);
-        setupDataLayers(viewer);
+        setupShareControls(viewer);
+        setupFullscreenButton();
         setupInteractionTools(viewer);
+        setupMobileMenu();
+        setupDataLayers(viewer);
+        setupLightingControls(viewer);
 
-        if (models.length > 0) modelListElement.querySelector('li').click();
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedModelId = urlParams.get('model');
+        let initialModelId = models.length > 0 ? models[0].id : null;
+
+        if (requestedModelId) {
+            const foundModel = models.find(m => m.id === requestedModelId);
+            if (foundModel) initialModelId = foundModel.id;
+        }
+        
+        if (initialModelId) {
+            document.getElementById(`model-list-item-${initialModelId}`).click();
+        }
         
       } catch (error) { console.error(`An error occurred: ${error}`); }
     }
 
-    // --- RESTORED MODEL LOADER ---
     async function loadModel(viewer, model) {
-        if (currentTileset) {
-            viewer.scene.primitives.remove(currentTileset);
-            currentTileset = null;
-        }
+        if (currentTileset) viewer.scene.primitives.remove(currentTileset);
         try {
             const detailLevel = document.getElementById('detailLevel').value;
-            const response = await fetch(model.url);
-            if (!response.ok) {
-                throw new Error(`Network response error: ${response.status} ${response.statusText}`);
-            }
-            
             const tileset = await Cesium.Cesium3DTileset.fromUrl(model.url, {
                 maximumScreenSpaceError: parseFloat(detailLevel)
             });
+            tileset.modelId = model.id; 
             if (model.lon && model.lat) {
                 const position = Cesium.Cartesian3.fromDegrees(model.lon, model.lat, model.height || 0);
                 tileset.modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(position);
@@ -172,23 +199,71 @@
             viewer.scene.primitives.add(tileset);
             await viewer.zoomTo(tileset);
             currentTileset = tileset;
+            document.getElementById('share-panel').style.display = 'block';
         } catch (error) {
             console.error(`Failed to load model from ${model.url}. Full error:`, error);
-            let userMessage = `MODEL FAILED TO LOAD.\nURL: ${model.url}\n\n`;
-            if (error.message.includes("404")) {
-                userMessage += `REASON: 404 Not Found.\nThe URL is incorrect or the file doesn't exist. Please verify the link.`;
-            } else if (error instanceof TypeError) {
-                userMessage += `REASON: CORS Policy Block.\nYour server (DigitalOcean) is blocking the request. Please check your CORS settings in your Space.`;
-            } else {
-                userMessage += `An unknown error occurred. Check the developer console (F12) for details.`;
-            }
-            alert(userMessage);
         }
     }
     
-    // --- RESTORED SETUP FUNCTIONS ---
-    function setupMovementControls(viewer) { /* Unchanged and correct */ }
-    function setupBackgroundColorPicker(viewer) { /* Unchanged and correct */ }
+    // ===============================================
+    // PART 3: SETUP FUNCTIONS
+    // ===============================================
+    function setupFullscreenButton() {
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        fullscreenBtn.onclick = () => {
+            if (Cesium.Fullscreen.fullscreen) {
+                Cesium.Fullscreen.exitFullscreen();
+            } else {
+                Cesium.Fullscreen.requestFullscreen(document.getElementById('cesiumContainer'));
+            }
+        };
+    }
+    
+    function setupMobileMenu() {
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const leftColumn = document.getElementById('left-column');
+        menuBtn.onclick = () => {
+            leftColumn.classList.toggle('open');
+        };
+    }
+
+    function setupShareControls(viewer) {
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const whatsappShareBtn = document.getElementById('whatsappShareBtn');
+        const gmailShareBtn = document.getElementById('gmailShareBtn');
+
+        const getShareUrl = () => {
+            if (currentTileset && currentTileset.modelId) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('model', currentTileset.modelId);
+                return url.href;
+            }
+            return null;
+        };
+
+        copyLinkBtn.onclick = () => {
+            const url = getShareUrl();
+            if (url) {
+                navigator.clipboard.writeText(url).then(() => alert('Link copied!'), () => alert('Failed to copy.'));
+            }
+        };
+
+        whatsappShareBtn.onclick = () => {
+            const url = getShareUrl();
+            if(url) {
+                whatsappShareBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent('Check out this 3D model: ' + url)}`;
+            }
+        };
+        
+        gmailShareBtn.onclick = () => {
+            const url = getShareUrl();
+            if(url) {
+                const subject = "Check out this 3D Model";
+                const body = `I wanted to share this interactive 3D model with you:\n\n${url}`;
+                gmailShareBtn.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+        };
+    }
     
     function setupLightingControls(viewer) {
         const detailSlider = document.getElementById('detailLevel');
@@ -245,8 +320,7 @@
         whites.oninput = updateUniforms;
         whiteBalance.oninput = updateUniforms;
     }
-    
-    // RESTORED DATA LAYERS FUNCTION
+
     function setupDataLayers(viewer) {
         const dataLayersList = document.getElementById('dataLayersList');
         const fileInput = document.getElementById('fileInput');
@@ -314,134 +388,93 @@
         };
     }
 
-    // --- UNIFIED INTERACTION TOOLS ---
     function setupInteractionTools(viewer) {
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
         const display = document.getElementById('measurement-display');
-        const measurementDataSource = new Cesium.CustomDataSource('measurements');
-        const drawingDataSource = new Cesium.CustomDataSource('drawings');
-        viewer.dataSources.add(measurementDataSource);
-        viewer.dataSources.add(drawingDataSource);
         let activeTool = null;
         let points = [];
-        let isDrawing = false;
+        let allEntities = [];
         let dynamicEntity = null;
-        const measurementButtons = { distance: document.getElementById('distanceBtn'), area: document.getElementById('areaBtn'), volume: document.getElementById('volumeBtn'), };
-        const drawingButtons = { rectangle: document.getElementById('drawRectangleBtn'), curve: document.getElementById('drawCurveBtn'), freeDraw: document.getElementById('freeDrawBtn'), note: document.getElementById('addNoteBtn'), };
-        const allButtons = { ...measurementButtons, ...drawingButtons };
-        document.getElementById('showDrawings').onchange = (e) => drawingDataSource.show = e.target.checked;
-        document.getElementById('exportDrawingsBtn').onclick = () => exportToKML(drawingDataSource);
-        document.getElementById('clearMeasurementsBtn').onclick = () => {
-            measurementDataSource.entities.removeAll();
-            display.textContent = 'Select a tool to begin.';
+
+        const buttons = {
+            distance: document.getElementById('distanceBtn'),
+            area: document.getElementById('areaBtn'),
+            volume: document.getElementById('volumeBtn'),
         };
-        document.getElementById('clearDrawingsBtn').onclick = () => {
-            drawingDataSource.entities.removeAll();
-        };
-        const clearCurrentTool = () => {
-            if (activeTool) allButtons[activeTool].classList.remove('active');
+        
+        const clear = () => {
+            if (activeTool) buttons[activeTool].classList.remove('active');
             activeTool = null;
             points = [];
-            if (dynamicEntity) { viewer.entities.remove(dynamicEntity); dynamicEntity = null; }
+            if (dynamicEntity) viewer.entities.remove(dynamicEntity);
+            dynamicEntity = null;
         };
+
+        const clearAll = () => {
+            clear();
+            allEntities.forEach(e => viewer.entities.remove(e));
+            allEntities = [];
+            display.textContent = 'Select a tool to begin.';
+        };
+        
         const activateTool = (toolName) => {
-            if (activeTool === toolName) {
-                clearCurrentTool();
-                return;
-            }
-            clearCurrentTool();
+            if (activeTool === toolName) { clear(); return; }
+            clear();
             activeTool = toolName;
-            allButtons[toolName].classList.add('active');
-            display.textContent = `Click to draw. Right-click or release mouse to finish.`;
+            buttons[toolName].classList.add('active');
         };
-        Object.keys(allButtons).forEach(key => { allButtons[key].onclick = () => activateTool(key); });
+
+        buttons.distance.onclick = () => activateTool('distance');
+        buttons.area.onclick = () => activateTool('area');
+        buttons.volume.onclick = () => activateTool('volume');
+        document.getElementById('clearMeasurementsBtn').onclick = clearAll;
+        
         const getPoint = (event) => viewer.scene.pickPosition(event.position || event.endPosition);
+
         handler.setInputAction((event) => {
             const position = getPoint(event);
             if (!activeTool || !Cesium.defined(position)) return;
-            if (activeTool === 'freeDraw') {
-                isDrawing = true;
-                points.push(position);
-                dynamicEntity = drawingDataSource.entities.add({ polyline: { positions: new Cesium.CallbackProperty(() => points, false), width: 3, material: Cesium.Color.ORANGE } });
-                return;
-            }
-            if (activeTool === 'note') {
-                const noteText = prompt("Enter note text:", "Annotation");
-                if (noteText) { drawingDataSource.entities.add({ position, point: { pixelSize: 10, color: Cesium.Color.ORANGE }, label: { text: noteText, font: '14pt sans-serif', fillColor: Cesium.Color.WHITE, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -15), disableDepthTestDistance: Number.POSITIVE_INFINITY } }); }
-                clearCurrentTool();
-                return;
-            }
             points.push(position);
-            const dataSource = measurementButtons[activeTool] ? measurementDataSource : drawingDataSource;
-            dataSource.entities.add({ position, point: { pixelSize: 8, color: Cesium.Color.YELLOW, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
-            if ((activeTool === 'distance' || activeTool === 'rectangle') && points.length === 2) {
-                finalize();
-            }
-        }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+            const entity = viewer.entities.add({ position, point: { pixelSize: 8, color: Cesium.Color.YELLOW, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+            allEntities.push(entity);
+            if (activeTool === 'distance' && points.length === 2) finalize();
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
         handler.setInputAction(() => {
-            if (isDrawing && activeTool === 'freeDraw') { finalize(); }
-            isDrawing = false;
-        }, Cesium.ScreenSpaceEventType.LEFT_UP);
-        handler.setInputAction(() => {
-            if (points.length >= 2 && activeTool === 'curve') {
-                finalize();
-            } else if (points.length >= 3 && (activeTool === 'area' || activeTool === 'volume')) {
-                finalize();
-            }
+            if (points.length >= 3 && (activeTool === 'area' || activeTool === 'volume')) finalize();
         }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
         handler.setInputAction((event) => {
             const position = getPoint(event);
-            if (!activeTool || !Cesium.defined(position)) return;
-            if (isDrawing && activeTool === 'freeDraw') {
-                points.push(position);
-                return;
-            }
-            if(points.length === 0) return;
+            if (!activeTool || points.length === 0 || !Cesium.defined(position)) return;
             if (activeTool === 'distance') {
-                if (!dynamicEntity) dynamicEntity = viewer.entities.add({ polyline: { positions: [points[0], position], width: 3, material: Cesium.Color.YELLOW.withAlpha(0.5) }});
+                if (!dynamicEntity) dynamicEntity = viewer.entities.add({ polyline: { positions: [], width: 3, material: Cesium.Color.YELLOW.withAlpha(0.5) }});
                 dynamicEntity.polyline.positions = [points[0], position];
-            } else if (activeTool === 'rectangle') {
-                if (!dynamicEntity) dynamicEntity = viewer.entities.add({ rectangle: { coordinates: Cesium.Rectangle.fromCartesianArray([points[0], position]), material: Cesium.Color.ORANGE.withAlpha(0.5) } });
-                dynamicEntity.rectangle.coordinates = Cesium.Rectangle.fromCartesianArray([points[0], position]);
-            } else if (activeTool === 'curve' || activeTool === 'area' || activeTool === 'volume') {
-                const currentPoints = [...points, position];
-                if (currentPoints.length >= 2) {
-                    if (!dynamicEntity) {
-                        const isPolygon = activeTool === 'area' || activeTool === 'volume';
-                        dynamicEntity = viewer.entities.add({
-                            polyline: { positions: new Cesium.CallbackProperty(() => [...points, position], false), width: 3, material: Cesium.Color.ORANGE.withAlpha(0.7) },
-                            polygon: isPolygon ? { hierarchy: new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy([...points, position]), false), material: Cesium.Color.YELLOW.withAlpha(0.5) } : undefined
-                        });
-                    }
-                }
+            } else if (activeTool === 'area' || activeTool === 'volume') {
+                if (!dynamicEntity) dynamicEntity = viewer.entities.add({ polygon: { hierarchy: {}, material: Cesium.Color.YELLOW.withAlpha(0.5) } });
+                dynamicEntity.polygon.hierarchy = new Cesium.PolygonHierarchy([...points, position]);
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-      
+
         const finalize = () => {
-            let dataSource = measurementButtons[activeTool] ? measurementDataSource : drawingDataSource;
+            let finalShape;
             if (activeTool === 'distance') {
-                const distance = Cesium.Cartesian3.distance(points[0], points[1]);
-                display.textContent = `Direct Distance: ${distance.toFixed(2)} m`;
-                dataSource.entities.add({ polyline: { positions: points, width: 3, material: Cesium.Color.YELLOW } });
+                finalShape = viewer.entities.add({ polyline: { positions: points, width: 3, material: Cesium.Color.YELLOW } });
+                display.textContent = `Distance: ${Cesium.Cartesian3.distance(points[0], points[1]).toFixed(2)} m`;
             } else if (activeTool === 'area' || activeTool === 'volume') {
                 const area = calculate3DArea(points);
-                let resultText = `Surface Area: ${area.toFixed(2)} m²`;
+                let text = `Surface Area: ${area.toFixed(2)} m²`;
                 if (activeTool === 'volume') {
                     const cartographics = points.map(p => Cesium.Cartographic.fromCartesian(p));
                     const minHeight = Math.min(...cartographics.map(p => p.height));
                     const maxHeight = Math.max(...cartographics.map(p => p.height));
-                    const heightDiff = maxHeight - minHeight;
-                    const volume = area * heightDiff;
-                    resultText += `\nEst. Volume: ${volume.toFixed(2)} m³`;
+                    text += `\nEst. Volume: ${(area * (maxHeight - minHeight)).toFixed(2)} m³`;
                 }
-                display.textContent = resultText;
-                dataSource.entities.add({ polygon: { hierarchy: new Cesium.PolygonHierarchy(points), material: Cesium.Color.YELLOW.withAlpha(0.5) } });
-            } else if (activeTool === 'rectangle') {
-                 drawingDataSource.entities.add({ rectangle: { coordinates: Cesium.Rectangle.fromCartesianArray(points), material: Cesium.Color.ORANGE.withAlpha(0.5), outline: true, outlineColor: Cesium.Color.ORANGE } });
-            } else if (activeTool === 'curve' || activeTool === 'freeDraw') {
-                 drawingDataSource.entities.add({ polyline: { positions: points, width: 3, material: Cesium.Color.ORANGE } });
+                display.textContent = text;
+                finalShape = viewer.entities.add({ polygon: { hierarchy: new Cesium.PolygonHierarchy(points), material: Cesium.Color.YELLOW.withAlpha(0.5) } });
             }
-            clearCurrentTool();
+            if (finalShape) allEntities.push(finalShape);
+            clear();
         };
 
         const calculate3DArea = (positions) => {
@@ -453,42 +486,6 @@
               totalArea += Cesium.Cartesian3.cross(v1, v2, new Cesium.Cartesian3()).magnitude / 2.0;
           }
           return totalArea;
-        };
-        const exportToKML = (dataSource) => {
-            let kml = '<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n';
-            dataSource.entities.values.forEach(entity => {
-                kml += '    <Placemark>\n';
-                if (entity.label) kml += `      <name>${entity.label.text.getValue()}</name>\n`;
-                if (entity.point) {
-                    const cartographic = Cesium.Cartographic.fromCartesian(entity.position.getValue(viewer.clock.currentTime));
-                    kml += `      <Point><coordinates>${Cesium.Math.toDegrees(cartographic.longitude)},${Cesium.Math.toDegrees(cartographic.latitude)},${cartographic.height}</coordinates></Point>\n`;
-                } else if (entity.polyline) {
-                    const positions = entity.polyline.positions.getValue(viewer.clock.currentTime);
-                    let coords = '';
-                    positions.forEach(p => {
-                        const cartographic = Cesium.Cartographic.fromCartesian(p);
-                        coords += `${Cesium.Math.toDegrees(cartographic.longitude)},${Cesium.Math.toDegrees(cartographic.latitude)},${cartographic.height} `;
-                    });
-                    kml += `      <LineString><coordinates>${coords.trim()}</coordinates></LineString>\n`;
-                } else if (entity.rectangle) {
-                    const rect = entity.rectangle.coordinates.getValue(viewer.clock.currentTime);
-                    const coords = [
-                        Cesium.Math.toDegrees(rect.west), Cesium.Math.toDegrees(rect.south),
-                        Cesium.Math.toDegrees(rect.east), Cesium.Math.toDegrees(rect.south),
-                        Cesium.Math.toDegrees(rect.east), Cesium.Math.toDegrees(rect.north),
-                        Cesium.Math.toDegrees(rect.west), Cesium.Math.toDegrees(rect.north),
-                        Cesium.Math.toDegrees(rect.west), Cesium.Math.toDegrees(rect.south)
-                    ].map(c => c.toFixed(6)).join(' ');
-                    kml += `      <Polygon><outerBoundaryIs><LinearRing><coordinates>${coords}</coordinates></LinearRing></outerBoundaryIs></Polygon>\n`;
-                }
-                kml += '    </Placemark>\n';
-            });
-            kml += '  </Document>\n</kml>';
-            const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'quadspectat_drawings.kml';
-            link.click();
         };
     }
     
